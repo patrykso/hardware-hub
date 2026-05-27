@@ -56,7 +56,7 @@ const prompts = [
   { title: 'Cost Analysis', query: 'Summarize repair costs for Q3 across all departments', icon: 'paid' },
 ];
 
-const report = computed(() => hub.auditReport.value || hub.buildAuditReport());
+const report = computed(() => hub.auditReport.value);
 
 function runAudit() {
   hub.buildAuditReport();
