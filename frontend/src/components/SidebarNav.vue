@@ -6,7 +6,6 @@
       </div>
       <div>
         <strong>Hardware Manager</strong>
-        <p>Enterprise Hub</p>
       </div>
     </div>
 
@@ -42,9 +41,9 @@ const router = useRouter();
 const hub = useHubState();
 
 const items = [
-  { label: 'Hardware', to: '/hardware', match: '/hardware', icon: 'list_alt' },
+  { label: 'Hardware List', to: '/hardware', match: '/hardware', icon: 'list_alt' },
   { label: 'My Rentals', to: '/rentals', match: '/rentals', icon: 'inventory_2' },
-  { label: 'Admin', to: '/admin', match: '/admin', icon: 'admin_panel_settings' },
+  { label: 'Admin Panel', to: '/admin', match: '/admin', icon: 'admin_panel_settings' },
 ];
 
 function logout() {

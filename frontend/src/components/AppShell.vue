@@ -3,7 +3,7 @@
     <SidebarNav />
 
     <div class="shell-main">
-      <header class="shell-topbar">
+      <header v-if="showTopBar" class="shell-topbar">
         <div>
           <p class="eyebrow">Hardware Rental Hub</p>
           <h1>{{ pageTitle }}</h1>
@@ -23,7 +23,7 @@
       </main>
     </div>
 
-    <button class="assistant-fab" type="button" @click="$router.push('/audit')" title="Open AI audit">
+    <button v-if="showFab" class="assistant-fab" type="button" @click="$router.push('/audit')" title="Open AI audit">
       <span class="material-symbols-outlined filled">smart_toy</span>
     </button>
   </div>
@@ -34,6 +34,17 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import SidebarNav from './SidebarNav.vue';
 import { useHubState } from '../data/hubState';
+
+defineProps({
+  showTopBar: {
+    type: Boolean,
+    default: true,
+  },
+  showFab: {
+    type: Boolean,
+    default: true,
+  },
+});
 
 const hub = useHubState();
 const route = useRoute();
