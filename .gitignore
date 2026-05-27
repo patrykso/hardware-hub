@@ -222,6 +222,10 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+# Hub Rental
+backend/hub.db
+backend/.venv/
+
 
 # GitHub .gitignore template for Node projects
 # https://raw.githubusercontent.com/github/gitignore/refs/heads/main/Node.gitignore
