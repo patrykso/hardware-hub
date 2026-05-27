@@ -8,7 +8,7 @@ const userDirectory = [
 ];
 
 const initialEquipment = [
-  { id: 1, name: 'MacBook Pro 16"', brand: 'Apple', serialNumber: 'MBP-2024-001', purchaseDate: '2026-01-15', status: 'Available' },
+  { id: 1, name: 'MacBook Pro 16"', brand: 'Apple', serialNumber: 'MBP-2024-001', purchaseDate: '2026-01-15', status: 'InUse' },
   { id: 2, name: 'Dell XPS 15', brand: 'Dell', serialNumber: 'DELL-XPS-002', purchaseDate: '2026-01-20', status: 'InUse' },
   { id: 3, name: 'iPhone 15 Pro', brand: 'Apple', serialNumber: 'IPH-15-003', purchaseDate: '2026-02-01', status: 'Available' },
   { id: 4, name: 'iPad Air', brand: 'Apple', serialNumber: 'IPAD-AIR-004', purchaseDate: '2026-02-05', status: 'Repair' },
