@@ -81,15 +81,16 @@ const form = reactive({
   password: 'user',
 });
 
-function submit() {
+async function submit() {
   error.value = '';
 
   try {
-    const user = hub.login(form.username, form.password);
+    const user = await hub.login(form.username, form.password);
     const target = route.query.redirect?.toString() || (user.isAdmin ? '/admin' : '/hardware');
     router.push(target);
   } catch (exception) {
     error.value = exception instanceof Error ? exception.message : 'Unable to log in.';
   }
 }
+
 </script>
