@@ -25,6 +25,46 @@
   --sidebar-width: 260px;
 }
 
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f1219;
+  --panel: #1a1f2e;
+  --panel-muted: #1e2433;
+  --line: #2d3548;
+  --line-strong: #3d4760;
+  --text: #e8ecf4;
+  --text-muted: #8b95a8;
+  --navy: #e8ecf4;
+  --navy-soft: #c8d0e0;
+  --blue: #60a5fa;
+  --blue-soft: #1e3a5f;
+  --green: #4ade80;
+  --green-soft: #14332a;
+  --amber: #fbbf24;
+  --amber-soft: #3d2e0a;
+  --red: #f87171;
+  --red-soft: #3b1a1a;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
+  --shadow-soft: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .brand-mark,
+[data-theme="dark"] .auth-mark {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+[data-theme="dark"] .primary-button {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+[data-theme="dark"] .avatar {
+  background: #3b82f6;
+}
+
+[data-theme="dark"] .dialog-overlay {
+  background: rgba(0, 0, 0, 0.6);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -38,11 +78,19 @@ body,
 body {
   margin: 0;
   font-family: Inter, system-ui, sans-serif;
-  background:
-    radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(15, 23, 42, 0.07), transparent 24%),
+  background: radial-gradient(
+      circle at top left,
+      rgba(37, 99, 235, 0.08),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(15, 23, 42, 0.07),
+      transparent 24%
+    ),
     var(--bg);
   color: var(--text);
+  transition: background 200ms ease, color 200ms ease;
 }
 
 a {
@@ -58,11 +106,11 @@ textarea {
 }
 
 .material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24;
 }
 
 .material-symbols-outlined.filled {
-  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24;
 }
 
 .app-shell {
@@ -75,8 +123,7 @@ textarea {
   width: var(--sidebar-width);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--panel);
   backdrop-filter: blur(12px);
   border-right: 1px solid var(--line);
   padding: 24px 18px;
@@ -136,7 +183,7 @@ textarea {
 
 .sidebar-link.active,
 .mobile-nav-item.active {
-  background: #e8f0ff;
+  background: var(--blue-soft);
   color: var(--navy);
   border-color: rgba(37, 99, 235, 0.15);
   box-shadow: inset 4px 0 0 var(--blue);
@@ -144,11 +191,12 @@ textarea {
 
 .sidebar-link:hover,
 .mobile-nav-item:hover {
-  background: rgba(15, 23, 42, 0.04);
+  background: var(--panel-muted);
   color: var(--text);
 }
 
 .sidebar-footer {
+  margin-top: auto;
   padding-top: 20px;
   border-top: 1px solid var(--line);
 }
@@ -158,6 +206,25 @@ textarea {
   background: transparent;
   border: 0;
   cursor: pointer;
+  color: var(--red);
+}
+
+.sidebar-link.danger:hover {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.sidebar-link.theme-toggle {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.sidebar-link.theme-toggle:hover {
+  background: var(--panel-muted);
+  color: var(--text);
 }
 
 .shell-main {
@@ -181,8 +248,8 @@ textarea {
 .audit-header h2,
 .auth-visual h2 {
   margin: 0;
-  font-size: clamp(2rem, 2vw + 1rem, 3rem);
-  line-height: 1;
+  font-size: clamp(1.4rem, 1.5vw + 0.8rem, 1.8rem);
+  line-height: 1.2;
 }
 
 .eyebrow {
@@ -200,7 +267,7 @@ textarea {
   gap: 12px;
   padding: 12px 14px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--panel);
   border-radius: 999px;
   box-shadow: var(--shadow-soft);
 }
@@ -243,7 +310,7 @@ textarea {
 .suggestion-card,
 .finding-card {
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--panel);
   box-shadow: var(--shadow-soft);
 }
 
@@ -280,6 +347,14 @@ textarea {
   display: grid;
   gap: 12px;
   grid-template-columns: 2fr repeat(3, minmax(0, 1fr));
+}
+
+.toolbar-grid.narrow {
+  grid-template-columns: 2fr repeat(2, minmax(0, 1fr));
+}
+
+.toolbar-grid.wide {
+  grid-template-columns: 2fr repeat(3, minmax(0, 1fr)) auto;
 }
 
 .toolbar-grid.single {
@@ -344,7 +419,7 @@ thead th {
 }
 
 tbody tr:hover {
-  background: rgba(37, 99, 235, 0.03);
+  background: var(--panel-muted);
 }
 
 .mono {
@@ -358,6 +433,9 @@ tbody tr:hover {
 
 .actions-cell {
   white-space: nowrap;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .status-badge {
@@ -373,7 +451,7 @@ tbody tr:hover {
 }
 
 .status-badge::before {
-  content: '';
+  content: "";
   width: 8px;
   height: 8px;
   border-radius: 999px;
@@ -412,7 +490,8 @@ tbody tr:hover {
   border-radius: 14px;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, color 160ms ease;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease,
+    color 160ms ease;
 }
 
 .primary-button {
@@ -438,7 +517,7 @@ tbody tr:hover {
 
 .ghost-button {
   padding: 0 16px;
-  background: white;
+  background: var(--panel);
   border-color: var(--line);
   color: var(--text);
 }
@@ -450,7 +529,7 @@ tbody tr:hover {
 .icon-button {
   width: 42px;
   height: 42px;
-  background: white;
+  background: var(--panel);
   border-color: var(--line);
   color: var(--text);
 }
@@ -501,7 +580,7 @@ tbody tr:hover {
 .auth-screen {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: minmax(320px, 460px) minmax(0, 1fr);
+  place-items: center;
 }
 
 .auth-card {
@@ -509,8 +588,10 @@ tbody tr:hover {
   align-content: center;
   gap: 18px;
   padding: 40px;
-  border-right: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.92);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  width: 100%;
+  max-width: 460px;
 }
 
 .auth-card p {
@@ -579,7 +660,7 @@ tbody tr:hover {
 }
 
 .mini-stat {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--panel-muted);
 }
 
 .mini-stat span,
@@ -683,7 +764,7 @@ tbody tr:hover {
 .finding-card {
   grid-template-columns: auto 1fr;
   align-items: center;
-  background: white;
+  background: var(--panel);
 }
 
 .audit-sidebar h3 {
@@ -693,7 +774,7 @@ tbody tr:hover {
 .suggestion-card {
   padding: 16px;
   border-radius: var(--radius-md);
-  background: white;
+  background: var(--panel);
   border: 1px solid var(--line);
 }
 
@@ -710,6 +791,145 @@ tbody tr:hover {
   color: white;
   box-shadow: var(--shadow);
   cursor: pointer;
+}
+
+/* Compact table */
+.compact-table th,
+.compact-table td {
+  padding: 12px 14px;
+}
+
+.cell-sub {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Status select dropdown */
+.status-select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  outline: none;
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.status-select.status-available {
+  background: var(--green-soft);
+  color: var(--green);
+  border-color: var(--green-soft);
+}
+
+.status-select.status-in-use {
+  background: var(--blue-soft);
+  color: var(--blue);
+  border-color: var(--blue-soft);
+}
+
+.status-select.status-repair {
+  background: var(--red-soft);
+  color: var(--red);
+  border-color: var(--red-soft);
+}
+
+.status-select:focus {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* Confirm dialog */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+}
+
+.dialog-card {
+  background: var(--panel);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: var(--shadow);
+  text-align: center;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+}
+
+.dialog-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.dialog-icon.danger {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.dialog-title {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.dialog-message {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.dialog-actions .ghost-button,
+.dialog-actions .primary-button {
+  flex: 1;
+}
+
+.primary-button.danger {
+  background: var(--red);
+}
+
+.dialog-fade-enter-active,
+.dialog-fade-leave-active {
+  transition: opacity 200ms ease;
+}
+
+.dialog-fade-enter-from,
+.dialog-fade-leave-to {
+  opacity: 0;
+}
+
+/* Admin page layout */
+.admin-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-heading-row h2 {
+  margin: 0;
 }
 
 .desktop-only {
@@ -776,7 +996,7 @@ tbody tr:hover {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
     padding: 10px;
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--panel);
     backdrop-filter: blur(12px);
     border-top: 1px solid var(--line);
     z-index: 30;

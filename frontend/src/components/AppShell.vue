@@ -13,7 +13,7 @@
           <div class="avatar">{{ initials }}</div>
           <div>
             <strong>{{ currentUser.displayName }}</strong>
-            <span>{{ currentUser.isAdmin ? 'Admin' : 'User' }}</span>
+            <span>{{ currentUser.isAdmin ? "Admin" : "User" }}</span>
           </div>
         </div>
       </header>
@@ -22,25 +22,17 @@
         <slot />
       </main>
     </div>
-
-    <button v-if="showFab" class="assistant-fab" type="button" @click="$router.push('/audit')" title="Open AI audit">
-      <span class="material-symbols-outlined filled">smart_toy</span>
-    </button>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
-import SidebarNav from './SidebarNav.vue';
-import { useHubState } from '../data/hubState';
+import { computed } from "vue";
+import { useRoute } from "vue-router";
+import SidebarNav from "./SidebarNav.vue";
+import { useHubState } from "../data/hubState";
 
 defineProps({
   showTopBar: {
-    type: Boolean,
-    default: true,
-  },
-  showFab: {
     type: Boolean,
     default: true,
   },
@@ -49,14 +41,14 @@ defineProps({
 const hub = useHubState();
 const route = useRoute();
 
-const pageTitle = computed(() => route.meta.title || 'Hardware Rental Hub');
+const pageTitle = computed(() => route.meta.title || "Hardware Rental Hub");
 const currentUser = computed(() => hub.currentUser.value);
 const initials = computed(() => {
-  const name = currentUser.value?.displayName || 'User';
+  const name = currentUser.value?.displayName || "User";
   return name
-    .split(' ')
+    .split(" ")
     .map((part) => part[0])
-    .join('')
+    .join("")
     .slice(0, 2)
     .toUpperCase();
 });
