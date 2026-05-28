@@ -16,8 +16,9 @@
 
         <label>
           <span>Password</span>
-          <input v-model="form.password" type="password" placeholder="admin123" required />
+          <input v-model="form.password" type="password" placeholder="admin" required />
         </label>
+
 
         <button class="primary-button" type="submit">Login</button>
       </form>

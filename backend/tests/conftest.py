@@ -27,21 +27,22 @@ def fixture_db_session():
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     try:
-        # Seed users (password is 'password123')
-        admin_pwd = "password123"
-        user_pwd = "password123"
+        # Seed users (password matches username)
+        admin_pwd = "admin"
+        user_pwd = "user"
         admin = User(
-            username="admin1",
+            username="admin",
             password_hash=hash_password(admin_pwd),
             is_admin=True,
         )
         regular = User(
-            username="user1",
+            username="user",
             password_hash=hash_password(user_pwd),
             is_admin=False,
         )
         db.add(admin)
         db.add(regular)
+
 
         # Seed equipment in various statuses
         eq_available = Equipment(
@@ -89,12 +90,13 @@ def fixture_client(db_session):
 
 @pytest.fixture
 def admin_token():
-    return create_access_token({"sub": "admin1", "is_admin": True})
+    return create_access_token({"sub": "admin", "is_admin": True})
 
 
 @pytest.fixture
 def user_token():
-    return create_access_token({"sub": "user1", "is_admin": False})
+    return create_access_token({"sub": "user", "is_admin": False})
+
 
 
 @pytest.fixture

@@ -16,7 +16,8 @@ class Settings(BaseSettings):
     llm_provider: str = "ollama"
     llm_model: str = "llama3"
     admin_username: str = "admin"
-    admin_password: str = "admin123"
+    admin_password: str = "admin"
+
     cors_origins: list[str] = ["http://localhost:5173"]
     access_token_expire_hours: int = 8
 

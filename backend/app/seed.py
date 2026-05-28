@@ -115,8 +115,8 @@ def seed_database(session: Session | None = None) -> None:
             equipment.assigned_to = _string_or_none(item.get("assignedTo"))
             equipment.status = EquipmentStatus.ERROR if had_error else status
 
-        admin_count = session.scalar(select(func.count()).select_from(User).where(User.is_admin.is_(True))) or 0
-        if admin_count == 0:
+        admin_user = session.execute(select(User).where(User.username == settings.admin_username)).scalar_one_or_none()
+        if admin_user is None:
             session.add(
                 User(
                     username=settings.admin_username,
@@ -124,6 +124,10 @@ def seed_database(session: Session | None = None) -> None:
                     is_admin=True,
                 )
             )
+        else:
+            admin_user.password_hash = hash_password(settings.admin_password)
+            admin_user.is_admin = True
+
 
         session.commit()
     except Exception:

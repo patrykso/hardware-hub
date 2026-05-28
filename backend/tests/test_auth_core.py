@@ -30,7 +30,7 @@ def test_login_success(client):
     """Test standard login with correct credentials."""
     response = client.post(
         "/api/v1/auth/login",
-        json={"username": "user1", "password": "password123"},
+        json={"username": "user", "password": "user"},
     )
     assert response.status_code == 200
     data = response.json()
@@ -39,7 +39,7 @@ def test_login_success(client):
 
     # Decode and verify the payload
     payload = jwt.decode(data["access_token"], settings.secret_key, algorithms=["HS256"])
-    assert payload["sub"] == "user1"
+    assert payload["sub"] == "user"
     assert payload["is_admin"] is False
 
 
@@ -47,7 +47,7 @@ def test_login_success_admin(client):
     """Test admin login with correct credentials."""
     response = client.post(
         "/api/v1/auth/login",
-        json={"username": "admin1", "password": "password123"},
+        json={"username": "admin", "password": "admin"},
     )
     assert response.status_code == 200
     data = response.json()
@@ -55,7 +55,7 @@ def test_login_success_admin(client):
     assert data["token_type"] == "bearer"
 
     payload = jwt.decode(data["access_token"], settings.secret_key, algorithms=["HS256"])
-    assert payload["sub"] == "admin1"
+    assert payload["sub"] == "admin"
     assert payload["is_admin"] is True
 
 
@@ -63,7 +63,7 @@ def test_login_invalid_password(client):
     """Test login with wrong password."""
     response = client.post(
         "/api/v1/auth/login",
-        json={"username": "user1", "password": "wrongpassword"},
+        json={"username": "user", "password": "wrongpassword"},
     )
     assert response.status_code == 401
     assert response.json()["detail"] == "Incorrect username or password"
@@ -73,7 +73,7 @@ def test_login_non_existent_user(client):
     """Test login with a non-existent username."""
     response = client.post(
         "/api/v1/auth/login",
-        json={"username": "nobody", "password": "password123"},
+        json={"username": "nobody", "password": "user"},
     )
     assert response.status_code == 401
     assert response.json()["detail"] == "Incorrect username or password"
@@ -84,7 +84,7 @@ def test_get_current_user_valid_token(user_client):
     response = user_client.get("/test-auth/me")
     assert response.status_code == 200
     data = response.json()
-    assert data["username"] == "user1"
+    assert data["username"] == "user"
     assert data["is_admin"] is False
 
 
@@ -93,7 +93,7 @@ def test_get_current_user_valid_admin_token(admin_client):
     response = admin_client.get("/test-auth/me")
     assert response.status_code == 200
     data = response.json()
-    assert data["username"] == "admin1"
+    assert data["username"] == "admin"
     assert data["is_admin"] is True
 
 
@@ -119,7 +119,7 @@ def test_get_current_admin_user_success(admin_client):
     response = admin_client.get("/test-auth/admin")
     assert response.status_code == 200
     data = response.json()
-    assert data["username"] == "admin1"
+    assert data["username"] == "admin"
     assert data["is_admin"] is True
 
 
