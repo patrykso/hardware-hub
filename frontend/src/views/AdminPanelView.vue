@@ -1,5 +1,5 @@
 <template>
-  <AppShell :show-top-bar="false">
+  <AppShell>
     <section class="admin-page">
       <header class="admin-topbar surface-card admin-topbar-surface">
         <div class="admin-topbar-title">Admin Panel</div>
@@ -22,7 +22,9 @@
             Add New Device
           </button>
         </div>
-
+        <div class="admin-stats-row">
+          <StatCard v-for="s in stats" :key="s.label" :label="s.label" :value="s.value" :hint="s.hint" />
+        </div>
         <section class="surface-card admin-table-card">
           <div class="table-shell desktop-only admin-table-shell">
             <table>
@@ -81,6 +83,7 @@
 import { computed, ref } from 'vue';
 import AppShell from '../components/AppShell.vue';
 import StatusBadge from '../components/StatusBadge.vue';
+import StatCard from '../components/StatCard.vue';
 import { useHubState } from '../data/hubState';
 
 const hub = useHubState();
@@ -99,6 +102,8 @@ const currentUserInitials = computed(() => {
 const filteredEquipment = computed(() => {
   return hub.equipment.value.filter((item) => [item.name, item.brand, item.serialNumber].join(' ').toLowerCase().includes(query.value.toLowerCase()));
 });
+
+const stats = computed(() => hub.dashboardStats.value);
 
 function toggleRepair(id) {
   try {
