@@ -128,6 +128,23 @@ def seed_database(session: Session | None = None) -> None:
             admin_user.password_hash = hash_password(settings.admin_password)
             admin_user.is_admin = True
 
+        # Seed default regular user
+        regular_username = "user"
+        regular_password = "user"
+        regular_user = session.execute(select(User).where(User.username == regular_username)).scalar_one_or_none()
+        if regular_user is None:
+            session.add(
+                User(
+                    username=regular_username,
+                    password_hash=hash_password(regular_password),
+                    is_admin=False,
+                )
+            )
+        else:
+            regular_user.password_hash = hash_password(regular_password)
+            regular_user.is_admin = False
+
+
 
         session.commit()
     except Exception:
