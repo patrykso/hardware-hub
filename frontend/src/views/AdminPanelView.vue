@@ -1,6 +1,6 @@
 <template>
   <AppShell>
-    <div class="toolbar-grid wide">
+    <div class="toolbar-grid">
       <label class="input-group input-search">
         <span class="material-symbols-outlined">search</span>
         <input v-model="query" type="search" placeholder="Search devices..." />
@@ -23,18 +23,21 @@
         <option value="name">Sort by name</option>
         <option value="brand">Sort by brand</option>
       </select>
-
-      <button
-        class="primary-button"
-        type="button"
-        @click="$router.push('/admin/equipment/new')"
-      >
-        <span class="material-symbols-outlined">add</span>
-        Add Device
-      </button>
     </div>
 
     <section class="surface-card">
+      <div class="table-toolbar">
+        <span></span>
+        <button
+          class="primary-button small"
+          type="button"
+          @click="$router.push('/admin/equipment/new')"
+        >
+          <span class="material-symbols-outlined">add</span>
+          Add Device
+        </button>
+      </div>
+
       <div class="table-shell desktop-only">
         <table class="compact-table">
           <thead>
