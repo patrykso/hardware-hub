@@ -5,7 +5,6 @@
         <span class="material-symbols-outlined">search</span>
         <input v-model="query" type="search" placeholder="Search devices..." />
       </label>
-
       <select v-model="statusFilter" class="input-group input-select">
         <option value="all">All statuses</option>
         <option value="Available">Available</option>

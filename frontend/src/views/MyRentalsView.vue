@@ -1,10 +1,17 @@
 <template>
   <AppShell>
-    <div class="toolbar-grid narrow">
+    <div class="toolbar-grid">
       <label class="input-group input-search">
         <span class="material-symbols-outlined">search</span>
         <input v-model="query" type="search" placeholder="Search devices..." />
       </label>
+
+      <select v-model="statusFilter" class="input-group input-select">
+        <option value="all">All statuses</option>
+        <option value="Available">Available</option>
+        <option value="InUse">In use</option>
+        <option value="Repair">Repair</option>
+      </select>
 
       <select v-model="brandFilter" class="input-group input-select">
         <option value="all">All brands</option>
@@ -95,6 +102,7 @@ import { useHubState } from "../data/hubState";
 
 const hub = useHubState();
 const query = ref("");
+const statusFilter = ref("all");
 const brandFilter = ref("all");
 const sortBy = ref("name");
 
@@ -122,9 +130,12 @@ const filteredRentals = computed(() => {
         .join(" ")
         .toLowerCase()
         .includes(query.value.toLowerCase());
+      const matchesStatus =
+        statusFilter.value === "all" ||
+        entry.item.status === statusFilter.value;
       const matchesBrand =
         brandFilter.value === "all" || entry.item.brand === brandFilter.value;
-      return matchesSearch && matchesBrand;
+      return matchesSearch && matchesStatus && matchesBrand;
     })
     .sort((a, b) =>
       String(a.item[sortBy.value]).localeCompare(String(b.item[sortBy.value]))

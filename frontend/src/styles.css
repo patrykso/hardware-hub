@@ -194,8 +194,8 @@ textarea {
 .audit-header h2,
 .auth-visual h2 {
   margin: 0;
-  font-size: clamp(2rem, 2vw + 1rem, 3rem);
-  line-height: 1;
+  font-size: clamp(1.4rem, 1.5vw + 0.8rem, 1.8rem);
+  line-height: 1.2;
 }
 
 .eyebrow {
@@ -379,6 +379,9 @@ tbody tr:hover {
 
 .actions-cell {
   white-space: nowrap;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .status-badge {
