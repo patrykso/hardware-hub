@@ -26,6 +26,12 @@ app = FastAPI(
 )
 
 
+from .routers.auth import router as auth_router
+
+app.include_router(auth_router, prefix="/api/v1")
+
+
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
+
