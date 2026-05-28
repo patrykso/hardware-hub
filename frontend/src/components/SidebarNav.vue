@@ -27,6 +27,16 @@
     </nav>
 
     <div class="sidebar-footer">
+      <button
+        class="sidebar-link theme-toggle"
+        type="button"
+        @click="themeStore.toggle()"
+      >
+        <span class="material-symbols-outlined">{{
+          themeStore.isDark ? "light_mode" : "dark_mode"
+        }}</span>
+        <span>{{ themeStore.isDark ? "Light Mode" : "Dark Mode" }}</span>
+      </button>
       <button class="sidebar-link danger" type="button" @click="logout">
         <span class="material-symbols-outlined">logout</span>
         <span>Logout</span>
@@ -56,10 +66,12 @@
 import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useHubState } from "../data/hubState";
+import { useThemeStore } from "../stores/theme";
 
 const route = useRoute();
 const router = useRouter();
 const hub = useHubState();
+const themeStore = useThemeStore();
 
 const allItems = [
   { label: "Hardware", to: "/hardware", match: "/hardware", icon: "devices" },
