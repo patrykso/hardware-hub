@@ -1,16 +1,21 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.concurrency import run_in_threadpool
 
 from .database import Base, SessionLocal, engine
 from .seed import seed_database
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
+def _initialize_database() -> None:
     Base.metadata.create_all(bind=engine)
     with SessionLocal() as session:
         seed_database(session)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await run_in_threadpool(_initialize_database)
     yield
 
 
