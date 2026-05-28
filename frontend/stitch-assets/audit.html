@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Assistant - Hardware Manager</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#e0e3e5",
+                        "tertiary-fixed-dim": "#89ceff",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#000000",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#f7f9fb",
+                        "on-surface": "#191c1e",
+                        "primary-fixed-dim": "#bec6e0",
+                        "surface": "#f7f9fb",
+                        "on-secondary": "#ffffff",
+                        "surface-container": "#eceef0",
+                        "outline": "#76777d",
+                        "inverse-primary": "#bec6e0",
+                        "on-tertiary-container": "#008cc7",
+                        "secondary-fixed-dim": "#b9c7e0",
+                        "secondary-fixed": "#d5e3fd",
+                        "surface-dim": "#d8dadc",
+                        "primary": "#000000",
+                        "surface-container-high": "#e6e8ea",
+                        "on-tertiary-fixed-variant": "#004c6e",
+                        "on-secondary-container": "#57657b",
+                        "inverse-on-surface": "#eff1f3",
+                        "primary-fixed": "#dae2fd",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "inverse-surface": "#2d3133",
+                        "secondary-container": "#d5e3fd",
+                        "on-primary-container": "#7c839b",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed": "#131b2e",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#001e2f",
+                        "secondary": "#515f74",
+                        "on-surface-variant": "#45464d",
+                        "tertiary-container": "#001e2f",
+                        "on-secondary-fixed": "#0d1c2f",
+                        "tertiary-fixed": "#c9e6ff",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed-variant": "#3a485c",
+                        "surface-tint": "#565e74",
+                        "surface-container-low": "#f2f4f6",
+                        "outline-variant": "#c6c6cd",
+                        "on-primary": "#ffffff",
+                        "background": "#f7f9fb",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-background": "#191c1e",
+                        "primary-container": "#131b2e",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "container-padding": "24px",
+                        "base": "4px",
+                        "stack-lg": "32px",
+                        "gutter": "16px",
+                        "sidebar-width": "260px",
+                        "stack-md": "16px"
+                    },
+                    "fontFamily": {
+                        "table-header": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg-mobile": ["Inter"],
+                        "label-bold": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "table-header": ["13px", {"lineHeight": "18px", "fontWeight": "500"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "display-lg-mobile": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "label-bold": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen">
+<!-- SideNavBar -->
+<nav class="hidden md:flex bg-surface-container-lowest fixed left-0 top-0 h-full w-[260px] border-r border-outline-variant flex-col justify-between py-stack-lg z-50">
+<div>
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">memory</span>
+</div>
+<div>
+<h1 class="text-headline-md font-headline-md font-bold text-on-surface">Hardware Manager</h1>
+<p class="text-label-bold font-label-bold text-on-surface-variant">Enterprise Hub</p>
+</div>
+</div>
+<ul class="space-y-2 px-4">
+<li>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-2 hover:bg-surface-container-high rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="text-label-bold font-label-bold">Hardware List</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-2 hover:bg-surface-container-high rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-label-bold font-label-bold">My Rentals</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 bg-secondary-container text-on-secondary-container rounded-lg px-4 py-2 border-l-4 border-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined filled">admin_panel_settings</span>
+<span class="text-label-bold font-label-bold">Admin Panel</span>
+</a>
+</li>
+</ul>
+</div>
+<div class="px-4">
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-2 hover:bg-surface-container-high rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-label-bold font-label-bold">Logout</span>
+</a>
+</div>
+</nav>
+<!-- TopNavBar -->
+<header class="hidden md:flex bg-surface fixed top-0 right-0 w-[calc(100%-260px)] z-40 border-b border-outline-variant h-16 px-container-padding justify-between items-center">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-96">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-full py-2 pl-10 pr-4 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-body-sm font-body-sm" placeholder="Search hardware, users..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-all rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-all rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-primary-container overflow-hidden ml-2 cursor-pointer border border-outline-variant">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="A small circular avatar placeholder image with dark blue background and white letters AU." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKNJdNVMAJzRSUBKltDWSo9H7cpHSgM0nFnrNeJF1w9HHh48p3EIifTIqDNWaRm5MIQfkr2qhiVzvd49as3WXi6XT6FJi7BmEThHEgn5lkXne1Xv2TK2Nkcr5YPM6EF5Lz8TKDQf6VuTc5u4Muxlf7QxKg7e9GBNzKBAWGUlI4XOKg-w8dJ1hyzjl5UWFbYFgPkD6lf6vJq31jBmuDye2cevEMogHWYpldg2YAK4BqYP615dZKW2rB8FGEBhKwI_XXbpRygbZSoC8"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="md:ml-[260px] md:pt-16 p-container-padding min-h-screen pb-24">
+<div class="max-w-5xl mx-auto space-y-stack-lg mt-stack-md">
+<!-- Header Area -->
+<div class="flex items-center justify-between">
+<div>
+<h2 class="text-display-lg font-display-lg text-primary">AI Assistant</h2>
+<p class="text-body-md font-body-md text-on-surface-variant mt-1">Ask questions about your hardware inventory and operations.</p>
+</div>
+</div>
+<!-- Bento Grid Layout for AI Interaction -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Main Chat Area -->
+<div class="col-span-1 lg:col-span-2 space-y-stack-md">
+<!-- User Prompt Input -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-sm flex flex-col gap-4 relative">
+<textarea class="w-full bg-surface-bright border-none resize-none focus:ring-0 text-body-md font-body-md p-4 rounded-lg text-on-surface placeholder-on-surface-variant/50" placeholder="Ask the AI Assistant..." rows="3">I want to check status of ipads in repair</textarea>
+<div class="flex justify-between items-center">
+<div class="flex gap-2">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors"><span class="material-symbols-outlined text-sm">attach_file</span></button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors"><span class="material-symbols-outlined text-sm">mic</span></button>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-full text-label-bold font-label-bold flex items-center gap-2 hover:opacity-90 transition-opacity">
+<span>Generate</span>
+<span class="material-symbols-outlined text-sm">auto_awesome</span>
+</button>
+</div>
+</div>
+<!-- AI Response Container -->
+<div class="bg-secondary-fixed border border-outline-variant rounded-xl p-6 shadow-sm relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-tertiary-container via-primary to-tertiary-container"></div>
+<div class="flex items-start gap-4 mb-6">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-primary filled">smart_toy</span>
+</div>
+<div>
+<h3 class="text-headline-md font-headline-md text-on-secondary-fixed mb-2">Analysis Complete</h3>
+<p class="text-body-md font-body-md text-on-secondary-fixed-variant leading-relaxed">
+                                    Found 3 iPads in repair for over 14 days. These have been flagged for follow-up with the technician.
+                                </p>
+</div>
+</div>
+<!-- Data Table within AI Response -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant overflow-hidden mt-4">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low text-table-header font-table-header text-on-surface-variant border-b border-outline-variant">
+<tr>
+<th class="py-3 px-4 font-medium">Device Name</th>
+<th class="py-3 px-4 font-medium">Serial Number</th>
+<th class="py-3 px-4 font-medium">Days in Repair</th>
+<th class="py-3 px-4 font-medium">Status</th>
+</tr>
+</thead>
+<tbody class="text-body-sm font-body-sm text-on-surface divide-y divide-outline-variant/50">
+<tr class="hover:bg-surface-bright transition-colors">
+<td class="py-3 px-4 font-medium">iPad Pro 12.9" (Gen 5)</td>
+<td class="py-3 px-4 text-on-surface-variant font-mono text-xs">SN-8829-A1</td>
+<td class="py-3 px-4 text-error font-medium">18 Days</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 bg-error-container text-on-error-container px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-[12px]">flag</span> Flagged
+                                            </span>
+</td>
+</tr>
+<tr class="hover:bg-surface-bright transition-colors bg-surface-container-lowest">
+<td class="py-3 px-4 font-medium">iPad Air (Gen 4)</td>
+<td class="py-3 px-4 text-on-surface-variant font-mono text-xs">SN-3341-B9</td>
+<td class="py-3 px-4 text-error font-medium">15 Days</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 bg-error-container text-on-error-container px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-[12px]">flag</span> Flagged
+                                            </span>
+</td>
+</tr>
+<tr class="hover:bg-surface-bright transition-colors">
+<td class="py-3 px-4 font-medium">iPad Mini (Gen 6)</td>
+<td class="py-3 px-4 text-on-surface-variant font-mono text-xs">SN-9902-C3</td>
+<td class="py-3 px-4 text-error font-medium">21 Days</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 bg-error-container text-on-error-container px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-[12px]">flag</span> Flagged
+                                            </span>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="bg-surface-container-low px-4 py-3 flex justify-between items-center border-t border-outline-variant">
+<span class="text-label-bold font-label-bold text-on-surface-variant">3 items require attention</span>
+<button class="text-primary hover:text-on-tertiary-container text-label-bold font-label-bold flex items-center gap-1 transition-colors">
+                                    Export CSV <span class="material-symbols-outlined text-sm">download</span>
+</button>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="mt-6 flex gap-3 justify-end border-t border-outline-variant/30 pt-4">
+<button class="px-4 py-2 border border-outline-variant text-on-surface rounded-md text-label-bold font-label-bold hover:bg-surface-container-high transition-colors">
+                                Dismiss
+                            </button>
+<button class="px-4 py-2 bg-primary text-on-primary rounded-md text-label-bold font-label-bold hover:opacity-90 transition-opacity flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">mail</span> Email Technician
+                            </button>
+</div>
+</div>
+</div>
+<!-- Suggested Prompts Sidebar -->
+<div class="col-span-1 space-y-4">
+<h3 class="text-headline-md font-headline-md text-on-surface mb-4">Suggested Queries</h3>
+<button class="w-full text-left bg-surface-container-lowest border border-outline-variant p-4 rounded-xl hover:bg-surface-container-low transition-all hover:shadow-md group flex flex-col gap-2">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-sm group-hover:scale-110 transition-transform">monitoring</span>
+<span class="text-label-bold font-label-bold uppercase tracking-wider">Inventory Health</span>
+</div>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Show me laptops with battery health below 60%</span>
+</button>
+<button class="w-full text-left bg-surface-container-lowest border border-outline-variant p-4 rounded-xl hover:bg-surface-container-low transition-all hover:shadow-md group flex flex-col gap-2">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-sm group-hover:scale-110 transition-transform">schedule</span>
+<span class="text-label-bold font-label-bold uppercase tracking-wider">Lease Renewals</span>
+</div>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Which MacBook rentals expire next month?</span>
+</button>
+<button class="w-full text-left bg-surface-container-lowest border border-outline-variant p-4 rounded-xl hover:bg-surface-container-low transition-all hover:shadow-md group flex flex-col gap-2">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-sm group-hover:scale-110 transition-transform">paid</span>
+<span class="text-label-bold font-label-bold uppercase tracking-wider">Cost Analysis</span>
+</div>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Summarize repair costs for Q3 across all departments</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>
