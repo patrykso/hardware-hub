@@ -49,6 +49,7 @@ export function useHubState() {
     buildAuditReport: equipmentStore.buildAuditReport,
     getEquipmentById: equipmentStore.getEquipmentById,
     getOpenRentalForEquipment: equipmentStore.getOpenRentalForEquipment,
+    fetchData: equipmentStore.fetchData,
 
     // Utilities
     cloneEquipmentItem,

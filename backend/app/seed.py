@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from .core.config import settings
 from .core.security import hash_password
 from .database import SessionLocal
-from .models import Equipment, EquipmentStatus, User
+from .models import Equipment, EquipmentStatus, User, Rental
 
 
 def _seed_file_path() -> Path:
@@ -79,6 +79,12 @@ def seed_database(session: Session | None = None) -> None:
     session = session or SessionLocal()
 
     try:
+        # Always clear the database before seeding it
+        session.query(Rental).delete()
+        session.query(Equipment).delete()
+        session.query(User).delete()
+        session.commit()
+
         seed_data = json.loads(_seed_file_path().read_text(encoding="utf-8"))
         existing_rows = _existing_equipment_by_id(session)
         used_ids: set[int] = set(existing_rows)
@@ -109,6 +115,14 @@ def seed_database(session: Session | None = None) -> None:
 
             equipment.name = _string_or_none(item.get("name")) or ""
             equipment.brand = _string_or_none(item.get("brand")) or ""
+            
+            raw_serial = item.get("serialNumber") or item.get("serial_number")
+            if raw_serial:
+                equipment.serial_number = _string_or_none(raw_serial)
+            else:
+                brand_prefix = (item.get("brand") or "DEV").strip()[:3].upper()
+                equipment.serial_number = f"HUB-{brand_prefix}-{str(source_id).zfill(3)}"
+
             equipment.purchase_date = purchase_date
             equipment.notes = _string_or_none(item.get("notes"))
             equipment.history = _string_or_none(item.get("history"))

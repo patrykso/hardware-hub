@@ -29,6 +29,7 @@ class Equipment(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     brand: Mapped[str] = mapped_column(String(255), nullable=False, default="")
+    serial_number: Mapped[str | None] = mapped_column(String(255), nullable=True)
     purchase_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     history: Mapped[str | None] = mapped_column(Text, nullable=True)

@@ -26,7 +26,7 @@ const router = createRouter({
   },
 });
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const hub = useHubState();
 
   if (to.meta.public) {
@@ -39,6 +39,12 @@ router.beforeEach((to) => {
 
   if (to.meta.adminOnly && !hub.currentUser.value?.isAdmin) {
     return { path: '/hardware' };
+  }
+
+  try {
+    await hub.fetchData();
+  } catch (err) {
+    console.error('Failed to pre-fetch inventory data:', err);
   }
 
   return true;
