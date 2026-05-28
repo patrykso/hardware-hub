@@ -6,7 +6,7 @@
       </div>
 
       <h1>Welcome back</h1>
-      <p>Sign in to your Hardware Rental Hub workspace.</p>
+      <p>Sign in to your account.</p>
 
       <form class="auth-form" @submit.prevent="submit">
         <label>
@@ -14,7 +14,7 @@
           <input
             v-model="form.username"
             type="text"
-            placeholder="admin"
+            placeholder="name@booksy.com"
             required
           />
         </label>
@@ -24,7 +24,7 @@
           <input
             v-model="form.password"
             type="password"
-            placeholder="admin"
+            placeholder="Enter your password"
             required
           />
         </label>
@@ -54,8 +54,8 @@ const route = useRoute();
 const error = ref("");
 
 const form = reactive({
-  username: "user",
-  password: "user",
+  username: "",
+  password: "",
 });
 
 async function submit() {

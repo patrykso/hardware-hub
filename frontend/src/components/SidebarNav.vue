@@ -5,7 +5,7 @@
         <span class="material-symbols-outlined filled">deployed_code</span>
       </div>
       <div>
-        <strong>Hardware Manager</strong>
+        <strong>Hardware Hub</strong>
       </div>
     </div>
 
@@ -62,23 +62,20 @@ const router = useRouter();
 const hub = useHubState();
 
 const allItems = [
+  { label: "Hardware", to: "/hardware", match: "/hardware", icon: "devices" },
+  { label: "Rentals", to: "/rentals", match: "/rentals", icon: "assignment" },
   {
-    label: "Hardware List",
-    to: "/hardware",
-    match: "/hardware",
-    icon: "list_alt",
-  },
-  {
-    label: "My Rentals",
-    to: "/rentals",
-    match: "/rentals",
-    icon: "inventory_2",
-  },
-  {
-    label: "Admin Panel",
+    label: "Admin",
     to: "/admin",
     match: "/admin",
     icon: "admin_panel_settings",
+    adminOnly: true,
+  },
+  {
+    label: "Audit",
+    to: "/audit",
+    match: "/audit",
+    icon: "smart_toy",
     adminOnly: true,
   },
 ];

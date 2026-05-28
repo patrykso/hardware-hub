@@ -33,13 +33,11 @@
 
     <section class="surface-card">
       <div class="table-shell desktop-only">
-        <table>
+        <table class="compact-table">
           <thead>
             <tr>
-              <th>Device Name</th>
-              <th>Brand</th>
-              <th>Serial Number</th>
-              <th>Purchase Date</th>
+              <th>Device</th>
+              <th>Serial</th>
               <th>Status</th>
               <th></th>
             </tr>
@@ -48,15 +46,14 @@
             <tr v-for="item in filteredEquipment" :key="item.id">
               <td>
                 <strong>{{ item.name }}</strong>
+                <span class="cell-sub">{{ item.brand }}</span>
               </td>
-              <td>{{ item.brand }}</td>
               <td class="mono">{{ item.serialNumber }}</td>
-              <td>{{ hub.formatDate(item.purchaseDate) }}</td>
               <td><StatusBadge :label="item.status" /></td>
               <td class="actions-cell">
                 <button
                   v-if="item.status === 'Available'"
-                  class="ghost-button"
+                  class="ghost-button small"
                   type="button"
                   @click="rent(item.id)"
                 >
@@ -64,7 +61,7 @@
                 </button>
                 <button
                   v-else
-                  class="ghost-button secondary"
+                  class="ghost-button secondary small"
                   type="button"
                   disabled
                 >
@@ -86,9 +83,6 @@
             <p class="device-card-title">{{ item.name }}</p>
             <p class="device-card-meta">
               {{ item.brand }} · {{ item.serialNumber }}
-            </p>
-            <p class="device-card-meta">
-              Purchased {{ hub.formatDate(item.purchaseDate) }}
             </p>
           </div>
 
