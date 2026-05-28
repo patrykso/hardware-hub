@@ -1,7 +1,7 @@
 from datetime import date
 from enum import Enum
 
-from sqlalchemy import Date, Enum as SAEnum, String
+from sqlalchemy import Date, Enum as SAEnum, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -9,8 +9,9 @@ from ..database import Base
 
 class EquipmentStatus(str, Enum):
     AVAILABLE = "Available"
-    IN_USE = "InUse"
+    IN_USE = "In use"
     REPAIR = "Repair"
+    ERROR = "Error"
 
 
 equipment_status_type = SAEnum(
@@ -29,6 +30,9 @@ class Equipment(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     brand: Mapped[str] = mapped_column(String(255), nullable=False, default="")
     purchase_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    history: Mapped[str | None] = mapped_column(Text, nullable=True)
+    assigned_to: Mapped[str | None] = mapped_column(String(255), nullable=True)
     status: Mapped[EquipmentStatus] = mapped_column(
         equipment_status_type,
         nullable=False,
