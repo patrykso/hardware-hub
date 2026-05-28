@@ -1,122 +1,125 @@
 <template>
   <AppShell>
-    <section class="admin-page">
-      <div class="admin-heading-row">
-        <h2>Hardware Management</h2>
-        <button
-          class="primary-button admin-add-button"
-          type="button"
-          @click="$router.push('/admin/equipment/new')"
+    <div class="toolbar-grid">
+      <label class="input-group input-search">
+        <span class="material-symbols-outlined">search</span>
+        <input v-model="query" type="search" placeholder="Search devices..." />
+      </label>
+
+      <select v-model="statusFilter" class="input-group input-select">
+        <option value="all">All statuses</option>
+        <option value="Available">Available</option>
+        <option value="InUse">In use</option>
+        <option value="Repair">Repair</option>
+      </select>
+
+      <select v-model="sortBy" class="input-group input-select">
+        <option value="name">Sort by name</option>
+        <option value="brand">Sort by brand</option>
+      </select>
+
+      <button
+        class="primary-button"
+        type="button"
+        @click="$router.push('/admin/equipment/new')"
+      >
+        <span class="material-symbols-outlined">add</span>
+        Add Device
+      </button>
+    </div>
+
+    <section class="surface-card">
+      <div class="table-shell desktop-only">
+        <table class="compact-table">
+          <thead>
+            <tr>
+              <th>Device</th>
+              <th>Serial</th>
+              <th>Status</th>
+              <th class="align-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in filteredEquipment" :key="item.id">
+              <td>
+                <strong>{{ item.name }}</strong>
+                <span class="cell-sub">{{ item.brand }}</span>
+              </td>
+              <td class="mono">{{ item.serialNumber }}</td>
+              <td>
+                <select
+                  class="status-select"
+                  :class="statusClass(item.status)"
+                  :value="item.status"
+                  @change="changeStatus(item.id, $event.target.value)"
+                >
+                  <option value="Available">Available</option>
+                  <option value="InUse">In Use</option>
+                  <option value="Repair">Repair</option>
+                </select>
+              </td>
+              <td class="actions-cell align-right">
+                <router-link
+                  class="icon-button"
+                  :to="`/admin/equipment/${item.id}`"
+                  title="Edit"
+                >
+                  <span class="material-symbols-outlined">edit</span>
+                </router-link>
+                <button
+                  class="icon-button danger"
+                  type="button"
+                  title="Delete"
+                  @click="confirmDelete(item)"
+                >
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card-list mobile-only">
+        <article
+          v-for="item in filteredEquipment"
+          :key="item.id"
+          class="device-card"
         >
-          <span class="material-symbols-outlined">add</span>
-          Add Device
-        </button>
-      </div>
+          <div>
+            <p class="device-card-title">{{ item.name }}</p>
+            <p class="device-card-meta">
+              {{ item.brand }} · {{ item.serialNumber }}
+            </p>
+          </div>
 
-      <div class="toolbar-grid single">
-        <label class="input-group input-search">
-          <span class="material-symbols-outlined">search</span>
-          <input
-            v-model="query"
-            type="search"
-            placeholder="Search devices..."
-          />
-        </label>
-      </div>
-
-      <section class="surface-card admin-table-card">
-        <div class="table-shell desktop-only admin-table-shell">
-          <table class="compact-table">
-            <thead>
-              <tr>
-                <th>Device</th>
-                <th>Serial</th>
-                <th>Status</th>
-                <th class="align-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in filteredEquipment" :key="item.id">
-                <td>
-                  <strong>{{ item.name }}</strong>
-                  <span class="cell-sub">{{ item.brand }}</span>
-                </td>
-                <td class="mono">{{ item.serialNumber }}</td>
-                <td>
-                  <select
-                    class="status-select"
-                    :class="statusClass(item.status)"
-                    :value="item.status"
-                    @change="changeStatus(item.id, $event.target.value)"
-                  >
-                    <option value="Available">Available</option>
-                    <option value="InUse">In Use</option>
-                    <option value="Repair">Repair</option>
-                  </select>
-                </td>
-                <td class="actions-cell align-right">
-                  <router-link
-                    class="icon-button"
-                    :to="`/admin/equipment/${item.id}`"
-                    title="Edit"
-                  >
-                    <span class="material-symbols-outlined">edit</span>
-                  </router-link>
-                  <button
-                    class="icon-button danger"
-                    type="button"
-                    title="Delete"
-                    @click="confirmDelete(item)"
-                  >
-                    <span class="material-symbols-outlined">delete</span>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="card-list mobile-only">
-          <article
-            v-for="item in filteredEquipment"
-            :key="item.id"
-            class="device-card admin-card"
+          <select
+            class="status-select"
+            :class="statusClass(item.status)"
+            :value="item.status"
+            @change="changeStatus(item.id, $event.target.value)"
           >
-            <div>
-              <p class="device-card-title">{{ item.name }}</p>
-              <p class="device-card-meta">
-                {{ item.brand }} · {{ item.serialNumber }}
-              </p>
-            </div>
+            <option value="Available">Available</option>
+            <option value="InUse">In Use</option>
+            <option value="Repair">Repair</option>
+          </select>
 
-            <select
-              class="status-select"
-              :class="statusClass(item.status)"
-              :value="item.status"
-              @change="changeStatus(item.id, $event.target.value)"
+          <div class="card-actions">
+            <router-link
+              class="ghost-button small"
+              :to="`/admin/equipment/${item.id}`"
+              >Edit</router-link
             >
-              <option value="Available">Available</option>
-              <option value="InUse">In Use</option>
-              <option value="Repair">Repair</option>
-            </select>
-
-            <div class="card-actions">
-              <router-link
-                class="ghost-button small"
-                :to="`/admin/equipment/${item.id}`"
-                >Edit</router-link
-              >
-              <button
-                class="ghost-button small danger"
-                type="button"
-                @click="confirmDelete(item)"
-              >
-                Delete
-              </button>
-            </div>
-          </article>
-        </div>
-      </section>
+            <button
+              class="ghost-button small danger"
+              type="button"
+              @click="confirmDelete(item)"
+            >
+              Delete
+            </button>
+          </div>
+        </article>
+      </div>
     </section>
 
     <ConfirmDialog
@@ -137,12 +140,13 @@
 <script setup>
 import { computed, reactive, ref } from "vue";
 import AppShell from "../components/AppShell.vue";
-import StatusBadge from "../components/StatusBadge.vue";
 import ConfirmDialog from "../components/ConfirmDialog.vue";
 import { useHubState } from "../data/hubState";
 
 const hub = useHubState();
 const query = ref("");
+const statusFilter = ref("all");
+const sortBy = ref("name");
 
 const deleteDialog = reactive({
   visible: false,
@@ -150,12 +154,19 @@ const deleteDialog = reactive({
 });
 
 const filteredEquipment = computed(() => {
-  return hub.equipment.value.filter((item) =>
-    [item.name, item.brand, item.serialNumber]
-      .join(" ")
-      .toLowerCase()
-      .includes(query.value.toLowerCase())
-  );
+  return hub.equipment.value
+    .filter((item) => {
+      const matchesSearch = [item.name, item.brand, item.serialNumber]
+        .join(" ")
+        .toLowerCase()
+        .includes(query.value.toLowerCase());
+      const matchesStatus =
+        statusFilter.value === "all" || item.status === statusFilter.value;
+      return matchesSearch && matchesStatus;
+    })
+    .sort((left, right) =>
+      String(left[sortBy.value]).localeCompare(String(right[sortBy.value]))
+    );
 });
 
 function statusClass(status) {
