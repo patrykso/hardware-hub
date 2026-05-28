@@ -295,6 +295,14 @@ textarea {
   grid-template-columns: 2fr repeat(3, minmax(0, 1fr));
 }
 
+.toolbar-grid.narrow {
+  grid-template-columns: 2fr repeat(2, minmax(0, 1fr));
+}
+
+.toolbar-grid.wide {
+  grid-template-columns: 2fr repeat(3, minmax(0, 1fr)) auto;
+}
+
 .toolbar-grid.single {
   grid-template-columns: 1fr;
   max-width: 560px;

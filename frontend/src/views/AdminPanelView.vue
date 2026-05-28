@@ -1,6 +1,6 @@
 <template>
   <AppShell>
-    <div class="toolbar-grid">
+    <div class="toolbar-grid wide">
       <label class="input-group input-search">
         <span class="material-symbols-outlined">search</span>
         <input v-model="query" type="search" placeholder="Search devices..." />
@@ -11,6 +11,13 @@
         <option value="Available">Available</option>
         <option value="InUse">In use</option>
         <option value="Repair">Repair</option>
+      </select>
+
+      <select v-model="brandFilter" class="input-group input-select">
+        <option value="all">All brands</option>
+        <option v-for="brand in brands" :key="brand" :value="brand">
+          {{ brand }}
+        </option>
       </select>
 
       <select v-model="sortBy" class="input-group input-select">
@@ -146,12 +153,17 @@ import { useHubState } from "../data/hubState";
 const hub = useHubState();
 const query = ref("");
 const statusFilter = ref("all");
+const brandFilter = ref("all");
 const sortBy = ref("name");
 
 const deleteDialog = reactive({
   visible: false,
   item: null,
 });
+
+const brands = computed(() =>
+  [...new Set(hub.equipment.value.map((item) => item.brand))].sort()
+);
 
 const filteredEquipment = computed(() => {
   return hub.equipment.value
@@ -162,7 +174,9 @@ const filteredEquipment = computed(() => {
         .includes(query.value.toLowerCase());
       const matchesStatus =
         statusFilter.value === "all" || item.status === statusFilter.value;
-      return matchesSearch && matchesStatus;
+      const matchesBrand =
+        brandFilter.value === "all" || item.brand === brandFilter.value;
+      return matchesSearch && matchesStatus && matchesBrand;
     })
     .sort((left, right) =>
       String(left[sortBy.value]).localeCompare(String(right[sortBy.value]))

@@ -1,10 +1,22 @@
 <template>
   <AppShell>
-    <div class="toolbar-grid single">
+    <div class="toolbar-grid narrow">
       <label class="input-group input-search">
         <span class="material-symbols-outlined">search</span>
         <input v-model="query" type="search" placeholder="Search devices..." />
       </label>
+
+      <select v-model="brandFilter" class="input-group input-select">
+        <option value="all">All brands</option>
+        <option v-for="brand in brands" :key="brand" :value="brand">
+          {{ brand }}
+        </option>
+      </select>
+
+      <select v-model="sortBy" class="input-group input-select">
+        <option value="name">Sort by name</option>
+        <option value="brand">Sort by brand</option>
+      </select>
     </div>
 
     <section class="surface-card">
@@ -83,6 +95,15 @@ import { useHubState } from "../data/hubState";
 
 const hub = useHubState();
 const query = ref("");
+const brandFilter = ref("all");
+const sortBy = ref("name");
+
+const brands = computed(() => {
+  const rentalItems = hub.openRentalsForCurrentUser.value
+    .map((r) => hub.getEquipmentById(r.equipmentId))
+    .filter(Boolean);
+  return [...new Set(rentalItems.map((item) => item.brand))].sort();
+});
 
 const filteredRentals = computed(() => {
   return hub.openRentalsForCurrentUser.value
@@ -91,13 +112,22 @@ const filteredRentals = computed(() => {
       item: hub.getEquipmentById(rental.equipmentId),
       id: rental.id,
     }))
-    .filter(
-      (entry) =>
-        entry.item &&
-        [entry.item.name, entry.item.brand, entry.item.serialNumber]
-          .join(" ")
-          .toLowerCase()
-          .includes(query.value.toLowerCase())
+    .filter((entry) => {
+      if (!entry.item) return false;
+      const matchesSearch = [
+        entry.item.name,
+        entry.item.brand,
+        entry.item.serialNumber,
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(query.value.toLowerCase());
+      const matchesBrand =
+        brandFilter.value === "all" || entry.item.brand === brandFilter.value;
+      return matchesSearch && matchesBrand;
+    })
+    .sort((a, b) =>
+      String(a.item[sortBy.value]).localeCompare(String(b.item[sortBy.value]))
     );
 });
 
