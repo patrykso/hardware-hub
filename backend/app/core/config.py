@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     db_path: str = "hub.db"
     llm_provider: str = "ollama"
     llm_model: str = "llama3"
+    admin_username: str = "admin"
+    admin_password: str = "admin123"
     cors_origins: list[str] = ["http://localhost:5173"]
     access_token_expire_hours: int = 8
 

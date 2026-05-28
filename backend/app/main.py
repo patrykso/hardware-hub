@@ -2,9 +2,15 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from .database import Base, SessionLocal, engine
+from .seed import seed_database
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
+    with SessionLocal() as session:
+        seed_database(session)
     yield
 
 
