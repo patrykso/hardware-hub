@@ -1,33 +1,51 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useAuthStore } from './auth';
+import axios from '../api/axios';
 
-const initialEquipment = [
-  { id: 1, name: 'MacBook Pro 16"', brand: 'Apple', serialNumber: 'MBP-2024-001', purchaseDate: '2026-01-15', status: 'InUse' },
-  { id: 2, name: 'Dell XPS 15', brand: 'Dell', serialNumber: 'DELL-XPS-002', purchaseDate: '2026-01-20', status: 'InUse' },
-  { id: 3, name: 'iPhone 15 Pro', brand: 'Apple', serialNumber: 'IPH-15-003', purchaseDate: '2026-02-01', status: 'Available' },
-  { id: 4, name: 'iPad Air', brand: 'Apple', serialNumber: 'IPAD-AIR-004', purchaseDate: '2026-02-05', status: 'Repair', repairStartedAt: '2026-02-05T00:00:00Z' },
-  { id: 5, name: 'ThinkPad X1 Carbon', brand: 'Lenovo', serialNumber: 'TPX1-005', purchaseDate: '2026-02-10', status: 'Available' },
-  { id: 6, name: 'Surface Pro 9', brand: 'Microsoft', serialNumber: 'SRF-PRO-006', purchaseDate: '2026-02-12', status: 'InUse' },
-  { id: 7, name: 'Magic Keyboard', brand: 'Apple', serialNumber: 'MKB-007', purchaseDate: '2026-02-15', status: 'Available' },
-  { id: 8, name: 'Logitech MX Master 3S', brand: 'Logitech', serialNumber: 'MXM-3S-008', purchaseDate: '2026-02-18', status: 'Available' },
-  { id: 9, name: 'MacBook Air M2', brand: 'Apple', serialNumber: 'MBA-M2-009', purchaseDate: '2026-02-22', status: 'Available' },
-  { id: 10, name: 'Sony WH-1000XM5', brand: 'Sony', serialNumber: 'SONY-010', purchaseDate: '2026-02-25', status: 'Available' },
-  { id: 11, name: 'Samsung Galaxy Tab S9', brand: 'Samsung', serialNumber: 'TAB-S9-011', purchaseDate: '2026-03-01', status: 'Available' },
-];
+// Helpers to map camelCase <-> snake_case
+function mapEquipmentFromBackend(item) {
+  return {
+    id: item.id,
+    name: item.name || '',
+    brand: item.brand || '',
+    serialNumber: item.serial_number || '',
+    purchaseDate: item.purchase_date ? item.purchase_date.slice(0, 10) : '',
+    status: item.status || '',
+    notes: item.notes || '',
+    history: item.history || '',
+    assignedTo: item.assigned_to || '',
+  };
+}
 
-const initialRentals = [
-  { id: 1, equipmentId: 1, userId: 2, rentedAt: '2026-05-12T09:30:00Z', returnedAt: null },
-  { id: 2, equipmentId: 2, userId: 1, rentedAt: '2026-05-20T13:00:00Z', returnedAt: null },
-  { id: 3, equipmentId: 6, userId: 1, rentedAt: '2026-05-01T08:00:00Z', returnedAt: null },
-  { id: 4, equipmentId: 3, userId: 2, rentedAt: '2026-04-18T11:00:00Z', returnedAt: '2026-04-25T16:30:00Z' },
-];
+function mapEquipmentToBackend(payload) {
+  return {
+    name: payload.name ? payload.name.trim() : '',
+    brand: payload.brand ? payload.brand.trim() : '',
+    serial_number: payload.serialNumber ? payload.serialNumber.trim() : '',
+    purchase_date: payload.purchaseDate ? payload.purchaseDate.slice(0, 10) : null,
+    status: payload.status,
+    notes: payload.notes || null,
+    history: payload.history || null,
+    assigned_to: payload.assignedTo || null,
+  };
+}
+
+function mapRentalFromBackend(rental) {
+  return {
+    id: rental.id,
+    equipmentId: rental.equipment_id,
+    userId: rental.user_id,
+    rentedAt: rental.rented_at,
+    returnedAt: rental.returned_at,
+  };
+}
 
 export const useEquipmentStore = defineStore('equipment', () => {
   const authStore = useAuthStore();
 
-  const equipment = ref(initialEquipment.map((item) => ({ ...item })));
-  const rentals = ref(initialRentals.map((item) => ({ ...item })));
+  const equipment = ref([]);
+  const rentals = ref([]);
   const auditReport = ref(null);
 
   function getEquipmentById(id) {
@@ -38,135 +56,149 @@ export const useEquipmentStore = defineStore('equipment', () => {
     return rentals.value.find((rental) => rental.equipmentId === Number(equipmentId) && !rental.returnedAt);
   }
 
-  function rentEquipment(equipmentId) {
+  async function fetchEquipment() {
+    try {
+      const response = await axios.get('/api/v1/equipment');
+      equipment.value = response.data.map(mapEquipmentFromBackend);
+    } catch (err) {
+      const detail = err.response?.data?.detail || 'Failed to fetch equipment.';
+      throw new Error(detail);
+    }
+  }
+
+  async function fetchRentals() {
+    try {
+      const response = await axios.get('/api/v1/rentals');
+      rentals.value = response.data.map(mapRentalFromBackend);
+    } catch (err) {
+      const detail = err.response?.data?.detail || 'Failed to fetch rentals.';
+      throw new Error(detail);
+    }
+  }
+
+  async function fetchData() {
+    if (!authStore.isAuthenticated) return;
+    try {
+      await Promise.all([fetchEquipment(), fetchRentals()]);
+    } catch (err) {
+      console.error('Failed to pre-fetch equipment or rentals:', err);
+    }
+  }
+
+  async function rentEquipment(equipmentId) {
     if (!authStore.currentUser) {
       throw new Error('You must be logged in to rent equipment.');
     }
 
-    const item = getEquipmentById(equipmentId);
-
-    if (!item) {
-      throw new Error('Equipment not found.');
+    try {
+      await axios.post('/api/v1/rentals', {
+        equipment_id: Number(equipmentId),
+      });
+      await fetchData();
+    } catch (err) {
+      const detail = err.response?.data?.detail || 'Failed to rent equipment.';
+      throw new Error(detail);
     }
-
-    if (item.status !== 'Available') {
-      throw new Error('Cannot rent equipment unless it is Available.');
-    }
-
-    if (getOpenRentalForEquipment(item.id)) {
-      throw new Error('This equipment already has an open rental.');
-    }
-
-    item.status = 'InUse';
-    rentals.value.unshift({
-      id: rentals.value.length + 1,
-      equipmentId: item.id,
-      userId: authStore.currentUser.id,
-      rentedAt: new Date().toISOString(),
-      returnedAt: null,
-    });
   }
 
-  function returnRental(rentalId) {
+  async function returnRental(rentalId) {
     if (!authStore.currentUser) {
       throw new Error('You must be logged in to return equipment.');
     }
 
-    const rental = rentals.value.find((entry) => entry.id === Number(rentalId));
-
-    if (!rental || rental.returnedAt) {
-      throw new Error('No open rental found for that record.');
+    try {
+      await axios.post(`/api/v1/rentals/${rentalId}/return`);
+      await fetchData();
+    } catch (err) {
+      const detail = err.response?.data?.detail || 'Failed to return equipment.';
+      throw new Error(detail);
     }
-
-    if (rental.userId !== authStore.currentUser.id && !authStore.currentUser.isAdmin) {
-      throw new Error('You cannot return equipment rented by another user.');
-    }
-
-    const item = getEquipmentById(rental.equipmentId);
-    if (item) {
-      item.status = 'Available';
-    }
-
-    rental.returnedAt = new Date().toISOString();
   }
 
-  function toggleRepairStatus(equipmentId) {
+  async function toggleRepairStatus(equipmentId) {
     const item = getEquipmentById(equipmentId);
-
     if (!item) {
       throw new Error('Equipment not found.');
     }
 
-    if (item.status === 'InUse') {
+    if (item.status === 'In use') {
       throw new Error('Equipment in use must be returned before it can be moved to Repair.');
     }
 
-    if (item.status === 'Repair') {
-      item.status = 'Available';
-      item.repairStartedAt = null;
-    } else {
-      item.status = 'Repair';
-      item.repairStartedAt = new Date().toISOString();
+    const newStatus = item.status === 'Repair' ? 'Available' : 'Repair';
+    try {
+      await axios.patch(`/api/v1/equipment/${equipmentId}`, {
+        status: newStatus,
+      });
+      await fetchEquipment();
+    } catch (err) {
+      const detail = err.response?.data?.detail || 'Failed to toggle repair status.';
+      throw new Error(detail);
     }
   }
 
-  function saveEquipment(equipmentId, patch) {
+  async function saveEquipment(equipmentId, patch) {
     const item = getEquipmentById(equipmentId);
-
     if (!item) {
       throw new Error('Equipment not found.');
     }
 
-    // Copilot Comment 1 Fix: Block direct status changes away from InUse while an open rental exists
     const openRental = getOpenRentalForEquipment(equipmentId);
-    if (openRental && patch.status && patch.status !== 'InUse') {
-      throw new Error('Equipment currently in use cannot be moved away from InUse status without returning it first.');
+    if (openRental && patch.status && patch.status !== 'In use') {
+      throw new Error('Equipment currently in use cannot be moved away from In use status without returning it first.');
     }
 
-    if (patch.status === 'Repair' && item.status === 'InUse') {
-      throw new Error('Cannot set an item to Repair while it is InUse.');
+    if (patch.status === 'Repair' && item.status === 'In use') {
+      throw new Error('Cannot set an item to Repair while it is In use.');
     }
 
-    // Copilot Comment 2 Fix: Track a repair-start timestamp per item (set when moving to Repair, clear when leaving)
-    if (patch.status === 'Repair' && item.status !== 'Repair') {
-      item.repairStartedAt = new Date().toISOString();
-    } else if (patch.status && patch.status !== 'Repair') {
-      item.repairStartedAt = null;
-    }
+    const payload = {};
+    if (patch.name !== undefined) payload.name = patch.name ? patch.name.trim() : '';
+    if (patch.brand !== undefined) payload.brand = patch.brand ? patch.brand.trim() : '';
+    if (patch.serialNumber !== undefined) payload.serial_number = patch.serialNumber ? patch.serialNumber.trim() : '';
+    if (patch.purchaseDate !== undefined) payload.purchase_date = patch.purchaseDate ? patch.purchaseDate.slice(0, 10) : null;
+    if (patch.status !== undefined) payload.status = patch.status;
+    if (patch.notes !== undefined) payload.notes = patch.notes;
+    if (patch.history !== undefined) payload.history = patch.history;
+    if (patch.assignedTo !== undefined) payload.assigned_to = patch.assignedTo;
 
-    Object.assign(item, {
-      ...patch,
-      purchaseDate: patch.purchaseDate ? patch.purchaseDate.slice(0, 10) : item.purchaseDate,
-    });
+    try {
+      await axios.patch(`/api/v1/equipment/${equipmentId}`, payload);
+      await fetchEquipment();
+    } catch (err) {
+      const detail = err.response?.data?.detail || 'Failed to save equipment.';
+      throw new Error(detail);
+    }
   }
 
-  function createEquipmentItem(payload) {
-    const nextId = Math.max(...equipment.value.map((item) => item.id), 0) + 1;
-    const isRepair = payload.status === 'Repair';
-    equipment.value.unshift({
-      id: nextId,
-      name: payload.name.trim(),
-      brand: payload.brand.trim(),
-      serialNumber: payload.serialNumber.trim(),
-      purchaseDate: payload.purchaseDate,
-      status: payload.status,
-      repairStartedAt: isRepair ? new Date().toISOString() : null,
-    });
+  async function createEquipmentItem(payload) {
+    const data = mapEquipmentToBackend(payload);
+    try {
+      await axios.post('/api/v1/equipment', data);
+      await fetchEquipment();
+    } catch (err) {
+      const detail = err.response?.data?.detail || 'Failed to create equipment.';
+      throw new Error(detail);
+    }
   }
 
-  function deleteEquipmentItem(equipmentId) {
+  async function deleteEquipmentItem(equipmentId) {
     const item = getEquipmentById(equipmentId);
-
     if (!item) {
       throw new Error('Equipment not found.');
     }
 
-    if (item.status === 'InUse') {
-      throw new Error('Cannot delete equipment that is currently InUse.');
+    if (item.status === 'In use') {
+      throw new Error('Cannot delete equipment that is currently In use.');
     }
 
-    equipment.value = equipment.value.filter((entry) => entry.id !== Number(equipmentId));
-    rentals.value = rentals.value.filter((entry) => entry.equipmentId !== Number(equipmentId));
+    try {
+      await axios.delete(`/api/v1/equipment/${equipmentId}`);
+      await fetchEquipment();
+    } catch (err) {
+      const detail = err.response?.data?.detail || 'Failed to delete equipment.';
+      throw new Error(detail);
+    }
   }
 
   const activeRentals = computed(() => rentals.value.filter((rental) => !rental.returnedAt));
@@ -175,8 +207,7 @@ export const useEquipmentStore = defineStore('equipment', () => {
     if (!authStore.currentUser) {
       return [];
     }
-
-    return rentals.value.filter((rental) => !rental.returnedAt && (authStore.currentUser.isAdmin || rental.userId === authStore.currentUser.id));
+    return rentals.value.filter((rental) => !rental.returnedAt);
   });
 
   const equipmentForCurrentUser = computed(() => {
@@ -188,13 +219,13 @@ export const useEquipmentStore = defineStore('equipment', () => {
       return equipment.value;
     }
 
-    return equipment.value.filter((item) => item.status !== 'Repair' || item.id === 4 || item.status === 'Available' || item.status === 'InUse');
+    return equipment.value.filter((item) => item.status !== 'Repair');
   });
 
   const dashboardStats = computed(() => {
     const total = equipment.value.length;
     const available = equipment.value.filter((item) => item.status === 'Available').length;
-    const inUse = equipment.value.filter((item) => item.status === 'InUse').length;
+    const inUse = equipment.value.filter((item) => item.status === 'In use').length;
     const repair = equipment.value.filter((item) => item.status === 'Repair').length;
 
     return [
@@ -209,8 +240,7 @@ export const useEquipmentStore = defineStore('equipment', () => {
     const longestRepair = equipment.value
       .filter((item) => item.status === 'Repair')
       .map((item) => {
-        // Copilot Comment 2 Fix: Track a repair-start timestamp per item and use it when building the audit report
-        const startTime = item.repairStartedAt ? new Date(item.repairStartedAt) : new Date(item.purchaseDate || '2026-02-05T00:00:00Z');
+        const startTime = new Date(item.purchaseDate || '2026-02-05T00:00:00Z');
         const days = Math.max(1, Math.round((Date.now() - startTime.getTime()) / 86_400_000));
         return {
           item,
@@ -274,5 +304,8 @@ export const useEquipmentStore = defineStore('equipment', () => {
     buildAuditReport,
     getEquipmentById,
     getOpenRentalForEquipment,
+    fetchEquipment,
+    fetchRentals,
+    fetchData,
   };
 });

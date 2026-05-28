@@ -8,7 +8,7 @@
       <select v-model="statusFilter" class="input-group input-select">
         <option value="all">All statuses</option>
         <option value="Available">Available</option>
-        <option value="InUse">In use</option>
+        <option value="In use">In use</option>
         <option value="Repair">Repair</option>
       </select>
 
@@ -63,7 +63,7 @@
                   @change="changeStatus(item.id, $event.target.value)"
                 >
                   <option value="Available">Available</option>
-                  <option value="InUse">In Use</option>
+                  <option value="In use">In Use</option>
                   <option value="Repair">Repair</option>
                 </select>
               </td>
@@ -109,7 +109,7 @@
             @change="changeStatus(item.id, $event.target.value)"
           >
             <option value="Available">Available</option>
-            <option value="InUse">In Use</option>
+            <option value="In use">In Use</option>
             <option value="Repair">Repair</option>
           </select>
 
@@ -187,7 +187,7 @@ const filteredEquipment = computed(() => {
 
 function statusClass(status) {
   if (status === "Available") return "status-available";
-  if (status === "InUse") return "status-in-use";
+  if (status === "In use") return "status-in-use";
   if (status === "Repair") return "status-repair";
   return "";
 }

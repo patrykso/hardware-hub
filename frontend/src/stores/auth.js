@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import axios from '../api/axios';
+import { useEquipmentStore } from './equipment';
 
 function decodeToken(jwtToken) {
   try {
@@ -55,6 +56,14 @@ export const useAuthStore = defineStore('auth', () => {
 
       const user = decodeToken(accessToken);
       currentUser.value = user;
+
+      try {
+        const equipmentStore = useEquipmentStore();
+        await equipmentStore.fetchData();
+      } catch (e) {
+        console.error('Failed to pre-fetch equipment on login:', e);
+      }
+
       return user;
     } catch (err) {
       const detail = err.response?.data?.detail || 'Invalid credentials or connection error.';
@@ -66,6 +75,15 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = '';
     currentUser.value = null;
     window.localStorage.removeItem('hardware-hub-token');
+
+    try {
+      const equipmentStore = useEquipmentStore();
+      equipmentStore.equipment = [];
+      equipmentStore.rentals = [];
+      equipmentStore.auditReport = null;
+    } catch (e) {
+      console.error('Failed to clear equipment store during logout:', e);
+    }
   }
 
   return {

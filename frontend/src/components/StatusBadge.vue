@@ -18,7 +18,7 @@ const variant = computed(() => {
   const normalized = props.label.toLowerCase();
 
   if (normalized.includes('available')) return 'available';
-  if (normalized.includes('inuse') || normalized.includes('active')) return 'in-use';
+  if (normalized.includes('inuse') || normalized.includes('in use') || normalized.includes('active')) return 'in-use';
   if (normalized.includes('repair') || normalized.includes('flagged')) return 'repair';
   if (normalized.includes('watch')) return 'neutral';
   return 'neutral';

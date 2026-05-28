@@ -35,7 +35,7 @@
           <span>Status</span>
           <select v-model="form.status">
             <option value="Available">Available</option>
-            <option value="InUse">InUse</option>
+            <option value="In use">In use</option>
             <option value="Repair">Repair</option>
           </select>
         </label>

@@ -7,6 +7,7 @@ from ..models.equipment import EquipmentStatus
 class EquipmentBase(BaseModel):
     name: str
     brand: str
+    serial_number: Optional[str] = None
     purchase_date: Optional[date] = None
     notes: Optional[str] = None
     history: Optional[str] = None
@@ -21,6 +22,7 @@ class EquipmentCreate(EquipmentBase):
 class EquipmentUpdate(BaseModel):
     name: Optional[str] = None
     brand: Optional[str] = None
+    serial_number: Optional[str] = None
     purchase_date: Optional[date] = None
     notes: Optional[str] = None
     history: Optional[str] = None
