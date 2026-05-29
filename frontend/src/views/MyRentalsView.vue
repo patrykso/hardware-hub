@@ -5,12 +5,6 @@
         <span class="material-symbols-outlined">search</span>
         <input v-model="query" type="search" placeholder="Search devices..." />
       </label>
-      <select v-model="statusFilter" class="input-group input-select">
-        <option value="all">All statuses</option>
-        <option value="Available">Available</option>
-        <option value="InUse">In use</option>
-        <option value="Repair">Repair</option>
-      </select>
       <select v-model="brandFilter" class="input-group input-select">
         <option value="all">All brands</option>
         <option v-for="brand in brands" :key="brand" :value="brand">
@@ -61,7 +55,7 @@
                     : "—"
                 }}
               </td>
-              <td><StatusBadge label="InUse" /></td>
+              <td><StatusBadge label="In Use" /></td>
               <td class="actions-cell align-right">
                 <button
                   class="primary-button small"
@@ -87,11 +81,8 @@
             <p class="device-card-meta">
               {{ rental.item.brand }} · {{ rental.item.serialNumber }}
             </p>
-            <p class="device-card-meta" v-if="rental.item.purchaseDate">
-              {{ hub.formatDate(rental.item.purchaseDate) }}
-            </p>
           </div>
-          <StatusBadge label="InUse" />
+          <StatusBadge label="In Use" />
           <button
             class="primary-button small"
             type="button"
@@ -113,7 +104,6 @@ import { useHubState } from "../data/hubState";
 
 const hub = useHubState();
 const query = ref("");
-const statusFilter = ref("all");
 const brandFilter = ref("all");
 const sortKey = ref("name");
 const sortAsc = ref(true);
@@ -142,12 +132,9 @@ const filteredRentals = computed(() => {
         .join(" ")
         .toLowerCase()
         .includes(query.value.toLowerCase());
-      const matchesStatus =
-        statusFilter.value === "all" ||
-        entry.item.status === statusFilter.value;
       const matchesBrand =
         brandFilter.value === "all" || entry.item.brand === brandFilter.value;
-      return matchesSearch && matchesStatus && matchesBrand;
+      return matchesSearch && matchesBrand;
     })
     .sort((a, b) => {
       const av = String(a.item[sortKey.value] || "");

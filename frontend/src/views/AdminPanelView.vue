@@ -56,16 +56,7 @@
                 }}
               </td>
               <td>
-                <select
-                  class="status-select"
-                  :class="statusClass(item.status)"
-                  :value="item.status"
-                  @change="changeStatus(item.id, $event.target.value)"
-                >
-                  <option value="Available">Available</option>
-                  <option value="InUse">In Use</option>
-                  <option value="Repair">Repair</option>
-                </select>
+                <StatusBadge :label="item.status" />
               </td>
               <td class="actions-cell align-right">
                 <button
@@ -105,16 +96,7 @@
               {{ hub.formatDate(item.purchaseDate) }}
             </p>
           </div>
-          <select
-            class="status-select"
-            :class="statusClass(item.status)"
-            :value="item.status"
-            @change="changeStatus(item.id, $event.target.value)"
-          >
-            <option value="Available">Available</option>
-            <option value="InUse">In Use</option>
-            <option value="Repair">Repair</option>
-          </select>
+          <StatusBadge :label="item.status" />
           <div class="card-actions">
             <button
               class="ghost-button small"
@@ -218,6 +200,7 @@
 <script setup>
 import { computed, reactive, ref } from "vue";
 import AppShell from "../components/AppShell.vue";
+import StatusBadge from "../components/StatusBadge.vue";
 import ConfirmDialog from "../components/ConfirmDialog.vue";
 import { useHubState } from "../data/hubState";
 
@@ -279,19 +262,6 @@ function toggleSort(key) {
 function sortArrow(key) {
   if (sortKey.value !== key) return "↕";
   return sortAsc.value ? "↑" : "↓";
-}
-
-function statusClass(status) {
-  if (status === "Available") return "status-available";
-  if (status === "InUse" || status === "In Use") return "status-in-use";
-  if (status === "Repair") return "status-repair";
-  return "";
-}
-
-function changeStatus(id, newStatus) {
-  hub
-    .saveEquipment(id, { status: newStatus })
-    .catch((e) => window.alert(e.message));
 }
 
 function openAddDevice() {
