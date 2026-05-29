@@ -1,3 +1,5 @@
+# TBD
+
 # Hub Rental System
 
 Hub Rental System is an internal hardware management platform that allows employees to browse and rent physical equipment, while providing administrators with tools to track inventory and user accounts. It also includes an AI layer provided as a standalone MCP server for auditing inventory.
@@ -16,30 +18,3 @@ The project consists of three main components:
 - **MCP Server**: Python (mcp SDK). Managed via `uv`.
 
 Please see the individual READMEs in each folder (`frontend/`, `backend/`, `mcp_server/`) for setup and development instructions.
-
-## VPS Deployment (Docker Demo)
-
-This project is prepared to be easily deployed to a VPS as a demonstration using Docker Compose. The configuration builds both the backend and frontend, linking them together and exposing the frontend on port 80.
-
-### Prerequisites
-- Docker and Docker Compose installed on your VPS.
-
-### Deployment Steps
-
-1. Clone the repository onto your VPS:
-   ```bash
-   git clone <repository_url> hub-rental
-   cd hub-rental
-   ```
-
-2. Start the services using Docker Compose:
-   ```bash
-   docker-compose up -d --build
-   ```
-
-3. Access the application:
-   - The frontend will be available at `http://<your-vps-ip>`
-   - The backend API will be available at `http://<your-vps-ip>:8000/api/v1`
-
-### Data Persistence
-The `hub.db` SQLite database is persisted within the `./data` directory mapped to `/app/data` inside the backend container.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import date
 from pathlib import Path
 
@@ -13,8 +14,22 @@ from .database import SessionLocal
 from .models import Equipment, EquipmentStatus, User, Rental
 
 
-def _seed_file_path() -> Path:
-    return Path(__file__).resolve().parents[2] / "data" / "initial_data.json"
+logger = logging.getLogger(__name__)
+
+
+def _seed_file_path() -> Path | None:
+    current_file = Path(__file__).resolve()
+    candidate_paths = [
+        current_file.parents[2] / "data" / "initial_data.json",  # repo-root layout
+        current_file.parents[1] / "data" / "initial_data.json",  # backend-root layout
+        Path.cwd() / "data" / "initial_data.json",  # runtime working directory layout
+    ]
+
+    for candidate in candidate_paths:
+        if candidate.exists():
+            return candidate
+
+    return None
 
 
 def _normalize_status(raw_status: object) -> EquipmentStatus:
@@ -91,7 +106,12 @@ def seed_database(session: Session | None = None, force: bool = False) -> None:
 
         if force or equipment_count == 0:
             # Seed equipment from initial_data.json
-            seed_data = json.loads(_seed_file_path().read_text(encoding="utf-8"))
+            seed_file_path = _seed_file_path()
+            if seed_file_path is None:
+                logger.warning("Skipping equipment seed: initial_data.json not found in known locations")
+                seed_data = []
+            else:
+                seed_data = json.loads(seed_file_path.read_text(encoding="utf-8"))
             existing_rows = _existing_equipment_by_id(session)
             used_ids: set[int] = set(existing_rows)
 
