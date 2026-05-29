@@ -625,7 +625,7 @@ tbody tr:hover {
 
 .auth-form {
   display: grid;
-  gap: 14px;
+  gap: 18px;
 }
 
 .auth-form label,
@@ -660,10 +660,20 @@ tbody tr:hover {
 }
 
 .auth-hint {
-  padding: 16px;
+  padding: 18px;
   border-radius: 14px;
   background: var(--panel-muted);
   border: 1px solid var(--line);
+  display: grid;
+  gap: 8px;
+}
+
+.auth-hint strong {
+  margin-bottom: 4px;
+}
+
+.auth-hint p {
+  margin: 0;
 }
 
 .form-error {
