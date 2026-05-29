@@ -74,61 +74,68 @@ def _next_available_id(used_ids: set[int]) -> int:
     return candidate
 
 
-def seed_database(session: Session | None = None) -> None:
+def seed_database(session: Session | None = None, force: bool = False) -> None:
     owns_session = session is None
     session = session or SessionLocal()
 
     try:
-        # Always clear the database before seeding it
-        session.query(Rental).delete()
-        session.query(Equipment).delete()
-        session.query(User).delete()
-        session.commit()
+        if force:
+            # Clear all data if force is True
+            session.query(Rental).delete()
+            session.query(Equipment).delete()
+            session.query(User).delete()
+            session.commit()
 
-        seed_data = json.loads(_seed_file_path().read_text(encoding="utf-8"))
-        existing_rows = _existing_equipment_by_id(session)
-        used_ids: set[int] = set(existing_rows)
+        # Check if equipment table has data
+        equipment_count = session.query(func.count(Equipment.id)).scalar() or 0
 
-        for item in seed_data:
-            source_id = _parse_source_id(item.get("id"))
-            purchase_date = _parse_purchase_date(item.get("purchaseDate"))
-            status = _normalize_status(item.get("status"))
+        if force or equipment_count == 0:
+            # Seed equipment from initial_data.json
+            seed_data = json.loads(_seed_file_path().read_text(encoding="utf-8"))
+            existing_rows = _existing_equipment_by_id(session)
+            used_ids: set[int] = set(existing_rows)
 
-            had_error = False
-            if source_id is None or source_id in used_ids:
-                had_error = True
-                source_id = _next_available_id(used_ids)
+            for item in seed_data:
+                source_id = _parse_source_id(item.get("id"))
+                purchase_date = _parse_purchase_date(item.get("purchaseDate"))
+                status = _normalize_status(item.get("status"))
 
-            if purchase_date is None and item.get("purchaseDate") is not None:
-                had_error = True
+                had_error = False
+                if source_id is None or source_id in used_ids:
+                    had_error = True
+                    source_id = _next_available_id(used_ids)
 
-            if status is EquipmentStatus.ERROR:
-                had_error = True
+                if purchase_date is None and item.get("purchaseDate") is not None:
+                    had_error = True
 
-            used_ids.add(source_id)
+                if status is EquipmentStatus.ERROR:
+                    had_error = True
 
-            equipment = existing_rows.get(source_id)
-            if equipment is None:
-                equipment = Equipment(id=source_id)
-                session.add(equipment)
-                existing_rows[source_id] = equipment
+                used_ids.add(source_id)
 
-            equipment.name = _string_or_none(item.get("name")) or ""
-            equipment.brand = _string_or_none(item.get("brand")) or ""
-            
-            raw_serial = item.get("serialNumber") or item.get("serial_number")
-            if raw_serial:
-                equipment.serial_number = _string_or_none(raw_serial)
-            else:
-                brand_prefix = (item.get("brand") or "DEV").strip()[:3].upper()
-                equipment.serial_number = f"HUB-{brand_prefix}-{str(source_id).zfill(3)}"
+                equipment = existing_rows.get(source_id)
+                if equipment is None:
+                    equipment = Equipment(id=source_id)
+                    session.add(equipment)
+                    existing_rows[source_id] = equipment
 
-            equipment.purchase_date = purchase_date
-            equipment.notes = _string_or_none(item.get("notes"))
-            equipment.history = _string_or_none(item.get("history"))
-            equipment.assigned_to = _string_or_none(item.get("assignedTo"))
-            equipment.status = EquipmentStatus.ERROR if had_error else status
+                equipment.name = _string_or_none(item.get("name")) or ""
+                equipment.brand = _string_or_none(item.get("brand")) or ""
+                
+                raw_serial = item.get("serialNumber") or item.get("serial_number")
+                if raw_serial:
+                    equipment.serial_number = _string_or_none(raw_serial)
+                else:
+                    brand_prefix = (item.get("brand") or "DEV").strip()[:3].upper()
+                    equipment.serial_number = f"HUB-{brand_prefix}-{str(source_id).zfill(3)}"
 
+                equipment.purchase_date = purchase_date
+                equipment.notes = _string_or_none(item.get("notes"))
+                equipment.history = _string_or_none(item.get("history"))
+                equipment.assigned_to = _string_or_none(item.get("assignedTo"))
+                equipment.status = EquipmentStatus.ERROR if had_error else status
+
+        # Always ensure seed admin user exists
         admin_user = session.execute(select(User).where(User.username == settings.admin_username)).scalar_one_or_none()
         if admin_user is None:
             session.add(
@@ -142,7 +149,7 @@ def seed_database(session: Session | None = None) -> None:
             admin_user.password_hash = hash_password(settings.admin_password)
             admin_user.is_admin = True
 
-        # Seed default regular user
+        # Always ensure seed default regular user exists
         regular_username = "user"
         regular_password = "user"
         regular_user = session.execute(select(User).where(User.username == regular_username)).scalar_one_or_none()
@@ -157,8 +164,6 @@ def seed_database(session: Session | None = None) -> None:
         else:
             regular_user.password_hash = hash_password(regular_password)
             regular_user.is_admin = False
-
-
 
         session.commit()
     except Exception:

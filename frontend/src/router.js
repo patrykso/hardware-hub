@@ -43,8 +43,11 @@ router.beforeEach(async (to) => {
 
   try {
     await hub.fetchData();
+    if (hub.currentUser.value?.isAdmin) {
+      await hub.fetchUsers();
+    }
   } catch (err) {
-    console.error('Failed to pre-fetch inventory data:', err);
+    console.error('Failed to pre-fetch data:', err);
   }
 
   return true;
