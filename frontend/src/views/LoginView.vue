@@ -1,11 +1,13 @@
 <template>
   <div class="auth-screen">
     <section class="auth-card">
-      <div class="auth-mark">
-        <span class="material-symbols-outlined filled">inventory_2</span>
+      <div class="auth-header">
+        <div class="auth-mark">
+          <span class="material-symbols-outlined filled">inventory_2</span>
+        </div>
+        <h1>Welcome back</h1>
       </div>
 
-      <h1>Welcome back</h1>
       <p>Sign in to your account.</p>
 
       <form class="auth-form" @submit.prevent="submit">
@@ -40,6 +42,16 @@
 
       <p v-if="error" class="form-error">{{ error }}</p>
     </section>
+
+    <button
+      class="login-theme-toggle"
+      type="button"
+      @click="themeStore.toggle()"
+    >
+      <span class="material-symbols-outlined">{{
+        themeStore.isDark ? "light_mode" : "dark_mode"
+      }}</span>
+    </button>
   </div>
 </template>
 
@@ -47,10 +59,12 @@
 import { reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useHubState } from "../data/hubState";
+import { useThemeStore } from "../stores/theme";
 
 const hub = useHubState();
 const router = useRouter();
 const route = useRoute();
+const themeStore = useThemeStore();
 const error = ref("");
 
 const form = reactive({
