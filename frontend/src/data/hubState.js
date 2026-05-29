@@ -29,7 +29,10 @@ export function useHubState() {
     isAuthenticated: computed(() => authStore.isAuthenticated),
     login: authStore.login,
     logout: authStore.logout,
-    userDirectory: authStore.userDirectory,
+    userDirectory: computed(() => authStore.userDirectory),
+    fetchUsers: authStore.fetchUsers,
+    createUser: authStore.createUser,
+    deleteUser: authStore.deleteUser,
 
     // Equipment Store State & Actions
     equipment: computed(() => equipmentStore.equipment),
@@ -50,6 +53,7 @@ export function useHubState() {
     getEquipmentById: equipmentStore.getEquipmentById,
     getOpenRentalForEquipment: equipmentStore.getOpenRentalForEquipment,
     fetchData: equipmentStore.fetchData,
+    resetDatabase: equipmentStore.resetDatabase,
 
     // Utilities
     cloneEquipmentItem,

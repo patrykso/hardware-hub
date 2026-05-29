@@ -287,6 +287,16 @@ export const useEquipmentStore = defineStore('equipment', () => {
     return report;
   }
 
+  async function resetDatabase() {
+    try {
+      await axios.post('/api/v1/users/reset-db');
+      await fetchData();
+    } catch (err) {
+      const detail = err.response?.data?.detail || 'Failed to reset database.';
+      throw new Error(detail);
+    }
+  }
+
   return {
     equipment,
     rentals,
@@ -307,5 +317,6 @@ export const useEquipmentStore = defineStore('equipment', () => {
     fetchEquipment,
     fetchRentals,
     fetchData,
+    resetDatabase,
   };
 });

@@ -86,6 +86,38 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const userDirectory = ref([]);
+
+  async function fetchUsers() {
+    try {
+      const response = await axios.get('/api/v1/users');
+      userDirectory.value = response.data;
+    } catch (err) {
+      const detail = err.response?.data?.detail || 'Failed to fetch users.';
+      throw new Error(detail);
+    }
+  }
+
+  async function createUser(payload) {
+    try {
+      await axios.post('/api/v1/users', payload);
+      await fetchUsers();
+    } catch (err) {
+      const detail = err.response?.data?.detail || 'Failed to create user.';
+      throw new Error(detail);
+    }
+  }
+
+  async function deleteUser(userId) {
+    try {
+      await axios.delete(`/api/v1/users/${userId}`);
+      await fetchUsers();
+    } catch (err) {
+      const detail = err.response?.data?.detail || 'Failed to delete user.';
+      throw new Error(detail);
+    }
+  }
+
   return {
     token,
     session,
@@ -93,6 +125,9 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     login,
     logout,
-    userDirectory: [], // Kept as empty array for API backwards-compatibility
+    userDirectory,
+    fetchUsers,
+    createUser,
+    deleteUser,
   };
 });
