@@ -9,7 +9,6 @@
           placeholder="Search users..."
         />
       </label>
-
       <button
         class="primary-button small"
         type="button"
@@ -25,9 +24,17 @@
         <table class="compact-table">
           <thead>
             <tr>
-              <th>Username</th>
-              <th>Role</th>
-              <th>Created</th>
+              <th class="sortable-th" @click="toggleSort('username')">
+                Username
+                <span class="sort-arrow">{{ sortArrow("username") }}</span>
+              </th>
+              <th class="sortable-th" @click="toggleSort('role')">
+                Role <span class="sort-arrow">{{ sortArrow("role") }}</span>
+              </th>
+              <th class="sortable-th" @click="toggleSort('created_at')">
+                Created
+                <span class="sort-arrow">{{ sortArrow("created_at") }}</span>
+              </th>
               <th class="align-right">Actions</th>
             </tr>
           </thead>
@@ -44,9 +51,7 @@
                   {{ user.is_admin ? "Admin" : "User" }}
                 </span>
               </td>
-              <td class="cell-sub">
-                {{ hub.formatDateTime(user.created_at) }}
-              </td>
+              <td>{{ hub.formatDateTime(user.created_at) }}</td>
               <td class="actions-cell align-right">
                 <button
                   v-if="user.id !== hub.currentUser.value?.id"
@@ -138,6 +143,8 @@ import { useHubState } from "../data/hubState";
 
 const hub = useHubState();
 const userQuery = ref("");
+const sortKey = ref("username");
+const sortAsc = ref(true);
 
 const userModal = reactive({
   visible: false,
@@ -153,8 +160,33 @@ const filteredUsers = computed(() => {
     .filter((u) =>
       u.username.toLowerCase().includes(userQuery.value.toLowerCase()),
     )
-    .sort((a, b) => a.username.localeCompare(b.username));
+    .sort((a, b) => {
+      let av, bv;
+      if (sortKey.value === "role") {
+        av = a.is_admin ? "admin" : "user";
+        bv = b.is_admin ? "admin" : "user";
+      } else {
+        av = String(a[sortKey.value] || "");
+        bv = String(b[sortKey.value] || "");
+      }
+      const cmp = av.localeCompare(bv);
+      return sortAsc.value ? cmp : -cmp;
+    });
 });
+
+function toggleSort(key) {
+  if (sortKey.value === key) {
+    sortAsc.value = !sortAsc.value;
+  } else {
+    sortKey.value = key;
+    sortAsc.value = true;
+  }
+}
+
+function sortArrow(key) {
+  if (sortKey.value !== key) return "↕";
+  return sortAsc.value ? "↑" : "↓";
+}
 
 function openAddUserModal() {
   userModal.username = "";

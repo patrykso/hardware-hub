@@ -50,7 +50,7 @@
                 <span class="cell-sub">{{ item.brand }}</span>
               </td>
               <td class="mono">{{ item.serialNumber }}</td>
-              <td class="cell-sub">
+              <td>
                 {{
                   item.purchaseDate ? hub.formatDate(item.purchaseDate) : "—"
                 }}

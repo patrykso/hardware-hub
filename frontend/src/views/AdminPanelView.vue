@@ -50,7 +50,7 @@
                 <span class="cell-sub">{{ item.brand }}</span>
               </td>
               <td class="mono">{{ item.serialNumber }}</td>
-              <td class="cell-sub">
+              <td>
                 {{
                   item.purchaseDate ? hub.formatDate(item.purchaseDate) : "—"
                 }}
@@ -283,7 +283,7 @@ function sortArrow(key) {
 
 function statusClass(status) {
   if (status === "Available") return "status-available";
-  if (status === "InUse") return "status-in-use";
+  if (status === "InUse" || status === "In Use") return "status-in-use";
   if (status === "Repair") return "status-repair";
   return "";
 }

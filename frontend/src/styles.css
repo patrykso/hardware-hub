@@ -998,12 +998,13 @@ tbody tr:hover {
 }
 
 .dialog-form-card {
-  max-width: 480px;
+  max-width: 520px;
   text-align: left;
 }
 
 .dialog-form-card .edit-form {
   margin-top: 16px;
+  grid-template-columns: 1fr;
 }
 
 .dialog-form-card .dialog-actions {
