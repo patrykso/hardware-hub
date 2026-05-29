@@ -9,7 +9,7 @@
 
 ## What This Project Is
 
-An internal hardware rental management system. Employees can browse and rent physical equipment (phones, laptops, etc.). Admins manage inventory and user accounts. An AI layer provides an on-demand inventory audit. The system is a REST API (FastAPI) consumed by a Vue 3 SPA.
+An internal hardware rental management system. Employees can browse and rent physical equipment (phones, laptops, etc.). Admins manage inventory and user accounts. An AI layer is provided as a standalone MCP server that connects directly to the database — it is not part of the web application. The web system is a REST API (FastAPI) consumed by a Vue 3 SPA.
 
 ---
 
@@ -19,7 +19,8 @@ An internal hardware rental management system. Employees can browse and rent phy
 - Frontend: Vue 3 + Vite (SPA, no SSR)
 - Database: SQLite, accessed via SQLAlchemy ORM. One `.db` file on disk.
 - No Alembic (schema is stable; use `create_all()` on startup)
-- LLM abstraction: LiteLLM (supports Ollama locally, cloud providers in production)
+- MCP server: separate Python package in `mcp_server/`, uses the `mcp` Python SDK, reads `hub.db` directly (read-only)
+- No LiteLLM, no LLM calls anywhere in the FastAPI backend
 - Package manager: `uv`
 - Tests: `pytest`, minimum 3 critical rental-logic tests
 - No self-registration. Admin creates all user accounts.
@@ -47,20 +48,22 @@ hub-rental/
 │   │   │   ├── auth.py
 │   │   │   ├── equipment.py
 │   │   │   ├── rentals.py
-│   │   │   ├── users.py
-│   │   │   └── audit.py
+│   │   │   └── users.py
 │   │   ├── services/
-│   │   │   ├── rental_service.py   # All rental business logic and guards
-│   │   │   └── audit_service.py    # LLM audit logic
-│   │   ├── core/
-│   │   │   ├── config.py      # Settings via pydantic-settings / env vars
-│   │   │   └── security.py    # JWT creation, verification, password hashing
-│   │   └── seed.py            # Loads initial_data.json into DB (idempotent)
+│   │   │   └── rental_service.py   # All rental business logic and guards
+│   │   └── core/
+│   │       ├── config.py      # Settings via pydantic-settings / env vars
+│   │       └── security.py    # JWT creation, verification, password hashing
+│   ├── seed.py                # Loads initial_data.json into DB (idempotent)
 │   ├── tests/
 │   │   ├── conftest.py        # Test DB setup, fixtures, test client
 │   │   └── test_rental_engine.py
+│   └── pyproject.toml
+├── mcp_server/
+│   ├── server.py              # MCP server entrypoint, tool definitions
+│   ├── database.py            # Read-only SQLAlchemy session pointing at hub.db
 │   ├── pyproject.toml
-│   └── hub.db                 # gitignored
+│   └── .env.example
 ├── frontend/
 │   ├── src/
 │   │   ├── views/
@@ -84,12 +87,12 @@ hub-rental/
 ### Equipment (SQLAlchemy model: `app/models/equipment.py`)
 
 | Field          | Type        | Notes                                      |
-|----------------|-------------|--------------------------------------------|
-| `id`           | Integer, PK | Auto-increment                             |
-| `name`         | String      | e.g. "Apple iPhone 13 Pro Max"             |
-| `brand`        | String      | e.g. "Apple"                               |
-| `purchase_date`| Date        | ISO 8601 string in seed JSON               |
-| `status`       | Enum        | `Available` \| `InUse` \| `Repair`         |
+|----------------|-------------|---------------------------------------------|
+| `id`           | Integer, PK | Auto-increment                              |
+| `name`         | String      | e.g. "Apple iPhone 13 Pro Max"              |
+| `brand`        | String      | e.g. "Apple"                                |
+| `purchase_date`| Date        | ISO 8601 string in seed JSON                |
+| `status`       | Enum        | `Available` \| `InUse` \| `Repair`          |
 
 Status is stored as a Python `Enum` (`EquipmentStatus`). Never store as raw string.
 
@@ -160,12 +163,12 @@ Response: `{ "access_token": str, "token_type": "bearer" }`
 
 ### Equipment
 
-| Method | Path                   | Auth       | Description                                       |
-|--------|------------------------|------------|---------------------------------------------------|
-| GET    | `/equipment`           | Any user   | List all equipment. Supports query params: `status`, `brand`, `sort_by`, `order` |
-| POST   | `/equipment`           | Admin only | Create new equipment item                         |
-| PATCH  | `/equipment/{id}`      | Admin only | Update fields (name, brand, purchase_date, status)|
-| DELETE | `/equipment/{id}`      | Admin only | Delete item (guard: not InUse)                    |
+| Method | Path                   | Auth       | Description                                        |
+|--------|------------------------|------------|----------------------------------------------------|
+| GET    | `/equipment`           | Any user   | List all. Query params: `status`, `brand`, `sort_by`, `order` |
+| POST   | `/equipment`           | Admin only | Create new equipment item                          |
+| PATCH  | `/equipment/{id}`      | Admin only | Update fields (name, brand, purchase_date, status) |
+| DELETE | `/equipment/{id}`      | Admin only | Delete item (guard: not InUse)                     |
 
 ### Rentals
 
@@ -182,11 +185,7 @@ Response: `{ "access_token": str, "token_type": "bearer" }`
 | POST   | `/users`       | Admin only | Create a user account  |
 | GET    | `/users`       | Admin only | List all users         |
 
-### Audit (Admin only)
-
-| Method | Path            | Auth       | Description                              |
-|--------|-----------------|------------|------------------------------------------|
-| POST   | `/audit/run`    | Admin only | Triggers LLM inventory audit, returns report |
+There is no `/audit` endpoint. Audit functionality is exclusively in the MCP server.
 
 ---
 
@@ -201,35 +200,112 @@ Response: `{ "access_token": str, "token_type": "bearer" }`
 
 ---
 
-## AI Audit (`app/services/audit_service.py`)
+## MCP Server (`mcp_server/`)
 
-- Triggered by admin via `POST /audit/run`
-- Fetches all equipment rows + all rental rows from DB
-- Constructs a structured prompt including full inventory snapshot and rental history summary
-- Sends to LLM via LiteLLM
-- LLM provider and model selected via environment variables (`LLM_PROVIDER`, `LLM_MODEL`)
-- Local dev: Ollama (e.g. `ollama/llama3`)
-- Production: any LiteLLM-supported provider (e.g. `anthropic/claude-sonnet-4-20250514`)
-- Expected LLM output: structured report with flagged issues (items long in Repair, items never rented, items with high rental frequency suggesting wear)
-- Response is returned directly to the admin as a text/JSON report — not persisted
+The MCP server is a **separate Python package** with its own `pyproject.toml`. It is not imported by the FastAPI backend and has no HTTP interface. It is consumed by an MCP-compatible client such as Claude Desktop.
+
+### Purpose
+
+Provides an AI client (Claude Desktop or equivalent) with structured read-only access to the rental system's database. The LLM reasons over the data and generates inventory insights. No LLM calls happen inside the MCP server itself — it only returns data.
+
+### Database Access
+
+- Opens `hub.db` directly via SQLAlchemy in **read-only mode**
+- DB path configured via `DB_PATH` environment variable in `mcp_server/.env`
+- Uses the same model definitions as the backend (import from a shared location or duplicate minimally — see note below)
+- Never writes to the database
+
+> **Note on shared models:** The MCP server and backend share the same `hub.db` schema. To avoid duplication, the MCP server may define its own lightweight SQLAlchemy models mirroring the backend's, rather than importing from the backend package. This keeps the two packages independent.
+
+### Tools
+
+The MCP server exposes four tools:
+
+**`get_inventory()`**
+- Returns all equipment rows: id, name, brand, purchase_date, status
+- No parameters
+- Used by the LLM to get a full picture of current inventory state
+
+**`get_active_rentals()`**
+- Returns all rentals where `returned_at IS NULL`
+- Each row includes: rental id, equipment name, username of renter, rented_at timestamp
+- Used to see what is currently checked out and by whom
+
+**`get_rental_history(equipment_id: int)`**
+- Returns all rental records (including returned) for a specific equipment item
+- Each row includes: username, rented_at, returned_at (null if still active)
+- Used to analyse usage patterns for a specific item
+
+**`audit_inventory()`**
+- Applies deterministic business logic to the full inventory and rental history
+- No parameters
+- Returns a structured list of findings. Each finding contains:
+  - `equipment_id`: int
+  - `name`: str
+  - `issue_type`: one of `long_in_repair` | `never_rented` | `high_rental_frequency` | `long_active_rental`
+  - `detail`: human-readable description with concrete data (e.g. "In Repair for 47 days")
+  - `severity`: `info` | `warning` | `critical`
+
+Flagging rules (all thresholds are hardcoded constants in `server.py`, easy to adjust):
+
+| issue_type              | Condition                                                      | Severity   |
+|-------------------------|----------------------------------------------------------------|------------|
+| `long_in_repair`        | Status is `Repair` and no rental activity for > 30 days       | `warning`  |
+| `never_rented`          | No rental record exists for this item at all                   | `info`     |
+| `high_rental_frequency` | Total completed rentals > 10                                   | `info`     |
+| `long_active_rental`    | Open rental (returned_at IS NULL) has been open for > 14 days | `warning`  |
+
+If no issues are found, returns an empty list — not an error.
+
+The LLM receives these pre-computed findings and narrates them to the admin. It does not need to discover issues itself; its role is to summarise, contextualise, and answer follow-up questions.
+
+### Running the MCP Server
+
+```bash
+cd mcp_server
+uv sync
+cp .env.example .env   # set DB_PATH to absolute path of hub.db
+uv run python server.py
+```
+
+### Claude Desktop Configuration
+
+Add to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "hub-rental": {
+      "command": "uv",
+      "args": ["--directory", "/absolute/path/to/hub-rental/mcp_server", "run", "python", "server.py"]
+    }
+  }
+}
+```
+
+### Environment Variables (`mcp_server/.env`)
+
+```
+DB_PATH=/absolute/path/to/hub-rental/backend/hub.db
+```
 
 ---
 
-## Environment Variables (`app/core/config.py`)
+## Environment Variables (`backend/app/core/config.py`)
 
 Use `pydantic-settings` to load from `.env`:
 
 ```
 SECRET_KEY=           # JWT signing key (required)
 DB_PATH=hub.db        # Path to SQLite file
-LLM_PROVIDER=ollama   # or anthropic, openai, etc.
-LLM_MODEL=llama3      # model name for LiteLLM
 CORS_ORIGINS=http://localhost:5173   # comma-separated
 ```
 
+There are no LLM-related environment variables in the backend.
+
 ---
 
-## Seed Script (`app/seed.py`)
+## Seed Script (`backend/seed.py`)
 
 - Reads `data/initial_data.json`
 - Inserts records into `equipment` table only if the table is empty (idempotent)
@@ -244,7 +320,7 @@ Initial JSON record shape:
 
 ---
 
-## Testing (`tests/`)
+## Testing (`backend/tests/`)
 
 Framework: `pytest`. Use FastAPI's `TestClient` with an in-memory SQLite DB (separate from production DB).
 
@@ -268,6 +344,8 @@ Additional tests encouraged:
 - `test_admin_can_toggle_repair_status`
 - `test_non_admin_cannot_create_user`
 
+The MCP server tools are pure database reads and can be tested by calling the tool functions directly with a test in-memory DB — no MCP protocol required.
+
 ---
 
 ## Conventions
@@ -287,3 +365,4 @@ Additional tests encouraged:
 - Not a multi-tenant system.
 - Not a full accounting/asset management system. No depreciation, cost tracking, or procurement workflow.
 - Not a real-time system. No WebSockets.
+- The MCP server is not a web service. It has no HTTP endpoints and is not deployed to a server.
