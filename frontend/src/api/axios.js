@@ -1,8 +1,9 @@
 import axios from 'axios';
 
-// Centralized Axios configuration pointing to backend server
+// Use relative API URL in production (through nginx proxy),
+// with optional override via Vite env for local/dev scenarios.
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/',
 });
 
 // Interceptor to attach the JWT Authorization header if it exists
