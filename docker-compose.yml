@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=prod
+      # Add CORS for the frontend origin
+      - CORS_ORIGINS=http://localhost
+      - SECRET_KEY=your-strong-production-secret-key
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin
+      - DB_PATH=/app/data/hub.db
+    volumes:
+      # Persist SQLite database and initial_data.json
+      - ./data:/app/data
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend

@@ -85,7 +85,7 @@ def test_patch_equipment_success(admin_client):
 
 
 def test_patch_equipment_status_repair_when_in_use_fails(admin_client):
-    # Equipment 2 is "In use" in conftest.py
+    # Equipment 2 is "InUse" in conftest.py
     payload = {"status": "Repair"}
     response = admin_client.patch("/api/v1/equipment/2", json=payload)
     assert response.status_code == 409
@@ -98,7 +98,7 @@ def test_delete_equipment_non_admin(user_client):
 
 
 def test_delete_equipment_in_use_fails(admin_client):
-    # Equipment 2 is "In use" in conftest.py
+    # Equipment 2 is "InUse" in conftest.py
     response = admin_client.delete("/api/v1/equipment/2")
     assert response.status_code == 409
     assert "Cannot delete equipment that is currently In use" in response.json()["detail"]

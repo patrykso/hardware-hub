@@ -18,7 +18,7 @@ LONG_ACTIVE_RENTAL_THRESHOLD_DAYS = 14
 def make_naive(dt: Any) -> datetime:
     """Helper to convert any date or timezone-aware datetime to a naive UTC datetime."""
     if dt is None:
-        return datetime.utcnow()
+        return datetime.now(timezone.utc).replace(tzinfo=None)
     if isinstance(dt, date) and not isinstance(dt, datetime):
         return datetime(dt.year, dt.month, dt.day)
     if dt.tzinfo is not None:
@@ -134,7 +134,7 @@ def audit_inventory() -> List[Dict[str, Any]]:
     try:
         equipments = session.query(Equipment).all()
         findings = []
-        now_naive = datetime.utcnow()
+        now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
         
         for eq in equipments:
             # Query all rentals for this item
