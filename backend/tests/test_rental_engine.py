@@ -171,3 +171,35 @@ def test_user_and_admin_only_see_own_rentals(client, admin_token, user_token):
     user_rentals = user_list.json()
     assert len(user_rentals) == 1
     assert user_rentals[0]["id"] == user_rental_id
+
+
+def test_admin_can_toggle_repair_status(admin_client):
+    # Equipment 1 is "iPhone Available" (status=AVAILABLE)
+    # Admin changes status to "Repair"
+    payload = {"status": "Repair"}
+    response = admin_client.patch(
+        "/api/v1/equipment/1",
+        json=payload,
+    )
+    assert response.status_code == 200
+    assert response.json()["status"] == "Repair"
+
+    # Admin changes status back to "Available"
+    payload = {"status": "Available"}
+    response = admin_client.patch(
+        "/api/v1/equipment/1",
+        json=payload,
+    )
+    assert response.status_code == 200
+    assert response.json()["status"] == "Available"
+
+
+def test_non_admin_cannot_create_user(user_client):
+    payload = {
+        "username": "unauthorized_user",
+        "password": "some_password",
+        "is_admin": False,
+    }
+    response = user_client.post("/api/v1/users", json=payload)
+    assert response.status_code == 403
+
