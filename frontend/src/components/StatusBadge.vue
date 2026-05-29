@@ -1,6 +1,6 @@
 <template>
   <span class="status-badge" :class="variant">
-    <slot>{{ label }}</slot>
+    <slot>{{ displayLabel }}</slot>
   </span>
 </template>
 
@@ -12,6 +12,11 @@ const props = defineProps({
     type: String,
     required: true,
   },
+});
+
+const displayLabel = computed(() => {
+  if (props.label === 'In use') return 'In use';
+  return props.label;
 });
 
 const variant = computed(() => {

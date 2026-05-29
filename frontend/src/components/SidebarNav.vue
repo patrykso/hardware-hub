@@ -84,6 +84,13 @@ const allItems = [
     adminOnly: true,
   },
   {
+    label: "Users",
+    to: "/users",
+    match: "/users",
+    icon: "group",
+    adminOnly: true,
+  },
+  {
     label: "Audit",
     to: "/audit",
     match: "/audit",

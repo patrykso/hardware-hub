@@ -1,6 +1,6 @@
 <template>
   <AppShell>
-    <div class="toolbar-grid">
+    <div class="toolbar-grid narrow">
       <label class="input-group input-search">
         <span class="material-symbols-outlined">search</span>
         <input
@@ -9,25 +9,17 @@
           placeholder="Search devices..."
         />
       </label>
-
       <select v-model="statusFilter" class="input-group input-select">
         <option value="all">All statuses</option>
         <option value="Available">Available</option>
         <option value="In use">In use</option>
         <option value="Repair">Repair</option>
       </select>
-
       <select v-model="brandFilter" class="input-group input-select">
         <option value="all">All brands</option>
         <option v-for="brand in brands" :key="brand" :value="brand">
           {{ brand }}
         </option>
-      </select>
-
-      <select v-model="sortBy" class="input-group input-select">
-        <option value="name">Sort by name</option>
-        <option value="brand">Sort by brand</option>
-        <option value="purchaseDate">Sort by date</option>
       </select>
     </div>
 
@@ -36,8 +28,17 @@
         <table class="compact-table">
           <thead>
             <tr>
-              <th>Device</th>
-              <th>Serial</th>
+              <th class="sortable-th" @click="toggleSort('name')">
+                Device <span class="sort-arrow">{{ sortArrow("name") }}</span>
+              </th>
+              <th class="sortable-th" @click="toggleSort('serialNumber')">
+                Serial
+                <span class="sort-arrow">{{ sortArrow("serialNumber") }}</span>
+              </th>
+              <th class="sortable-th" @click="toggleSort('purchaseDate')">
+                Purchased
+                <span class="sort-arrow">{{ sortArrow("purchaseDate") }}</span>
+              </th>
               <th>Status</th>
               <th></th>
             </tr>
@@ -49,6 +50,11 @@
                 <span class="cell-sub">{{ item.brand }}</span>
               </td>
               <td class="mono">{{ item.serialNumber }}</td>
+              <td>
+                {{
+                  item.purchaseDate ? hub.formatDate(item.purchaseDate) : "—"
+                }}
+              </td>
               <td><StatusBadge :label="item.status" /></td>
               <td class="actions-cell">
                 <button
@@ -84,10 +90,11 @@
             <p class="device-card-meta">
               {{ item.brand }} · {{ item.serialNumber }}
             </p>
+            <p class="device-card-meta" v-if="item.purchaseDate">
+              {{ hub.formatDate(item.purchaseDate) }}
+            </p>
           </div>
-
           <StatusBadge :label="item.status" />
-
           <button
             v-if="item.status === 'Available'"
             class="primary-button small"
@@ -120,10 +127,11 @@ const hub = useHubState();
 const searchText = ref("");
 const statusFilter = ref("all");
 const brandFilter = ref("all");
-const sortBy = ref("name");
+const sortKey = ref("name");
+const sortAsc = ref(true);
 
 const brands = computed(() =>
-  [...new Set(hub.equipment.value.map((item) => item.brand))].sort()
+  [...new Set(hub.equipment.value.map((i) => i.brand))].sort(),
 );
 
 const filteredEquipment = computed(() => {
@@ -139,20 +147,35 @@ const filteredEquipment = computed(() => {
         brandFilter.value === "all" || item.brand === brandFilter.value;
       return matchesSearch && matchesStatus && matchesBrand;
     })
-    .sort((left, right) =>
-      String(left[sortBy.value]).localeCompare(String(right[sortBy.value]))
-    );
+    .sort((a, b) => {
+      const av = String(a[sortKey.value] || "");
+      const bv = String(b[sortKey.value] || "");
+      const cmp = av.localeCompare(bv);
+      return sortAsc.value ? cmp : -cmp;
+    });
 });
 
-function rent(id) {
-  try {
-    hub.rentEquipment(id);
-  } catch (exception) {
-    window.alert(
-      exception instanceof Error
-        ? exception.message
-        : "Unable to rent equipment."
-    );
+function toggleSort(key) {
+  if (sortKey.value === key) {
+    sortAsc.value = !sortAsc.value;
+  } else {
+    sortKey.value = key;
+    sortAsc.value = true;
   }
+}
+
+function sortArrow(key) {
+  if (sortKey.value !== key) return "↕";
+  return sortAsc.value ? "↑" : "↓";
+}
+
+function rent(id) {
+  hub
+    .rentEquipment(id)
+    .catch((e) =>
+      window.alert(
+        e instanceof Error ? e.message : "Unable to rent equipment.",
+      ),
+    );
 }
 </script>

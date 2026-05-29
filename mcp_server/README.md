@@ -1,11 +1,33 @@
-# Hub Rental MCP Server
+# Hardware Hub - MCP Server
 
-A standalone Model Context Protocol (MCP) server that provides read-only tool access to the hardware hub rental database.
+This is the standalone MCP (Model Context Protocol) server for the Hardware Hub. It provides AI clients like Claude Desktop with read-only access to the database to perform inventory analysis and provide audits.
 
-## Features
+## Setup
 
-Provides four tools:
-- `get_inventory()`: Retrieve all hardware equipment details.
-- `get_active_rentals()`: Retrieve all currently active rentals.
-- `get_rental_history(equipment_id)`: Retrieve full rental history for an equipment item.
-- `audit_inventory()`: Apply deterministic logic to audit inventory state and identify issues.
+```bash
+cd mcp_server
+uv sync
+```
+
+## Running the Server
+
+Make sure to set the `DB_PATH` in `.env` to point to the backend's `hub.db`.
+
+```bash
+uv run python server.py
+```
+
+## Claude Desktop Configuration
+
+Add the following to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "hub-rental": {
+      "command": "uv",
+      "args": ["--directory", "/absolute/path/to/hub-rental/mcp_server", "run", "python", "server.py"]
+    }
+  }
+}
+```

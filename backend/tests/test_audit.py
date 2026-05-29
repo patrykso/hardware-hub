@@ -1,7 +1,7 @@
 import sys
 import os
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # Add the mcp_server directory to the system path to allow importing its modules
 mcp_server_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../mcp_server"))
@@ -53,7 +53,7 @@ def test_audit_flags_item_in_repair_beyond_threshold(audit_db):
         id=1,
         name="Long Repair Phone",
         brand="Apple",
-        purchase_date=datetime.utcnow().date() - timedelta(days=60),
+        purchase_date=datetime.now(timezone.utc).date() - timedelta(days=60),
         status="Repair",
     )
     audit_db.add(eq)
@@ -64,8 +64,8 @@ def test_audit_flags_item_in_repair_beyond_threshold(audit_db):
         id=1,
         equipment_id=1,
         user_id=1,
-        rented_at=datetime.utcnow() - timedelta(days=45),
-        returned_at=datetime.utcnow() - timedelta(days=40),
+        rented_at=datetime.now(timezone.utc) - timedelta(days=45),
+        returned_at=datetime.now(timezone.utc) - timedelta(days=40),
     )
     audit_db.add(rental)
     audit_db.commit()
@@ -88,7 +88,7 @@ def test_audit_flags_never_rented_item(audit_db):
         id=2,
         name="Never Rented Phone",
         brand="Google",
-        purchase_date=datetime.utcnow().date() - timedelta(days=10),
+        purchase_date=datetime.now(timezone.utc).date() - timedelta(days=10),
         status="Available",
     )
     audit_db.add(eq)
@@ -116,7 +116,7 @@ def test_audit_returns_empty_for_clean_inventory(audit_db):
         id=3,
         name="Healthy Tablet",
         brand="Samsung",
-        purchase_date=datetime.utcnow().date() - timedelta(days=5),
+        purchase_date=datetime.now(timezone.utc).date() - timedelta(days=5),
         status="Available",
     )
     audit_db.add(eq)
@@ -126,8 +126,8 @@ def test_audit_returns_empty_for_clean_inventory(audit_db):
         id=2,
         equipment_id=3,
         user_id=1,
-        rented_at=datetime.utcnow() - timedelta(days=3),
-        returned_at=datetime.utcnow() - timedelta(days=2),
+        rented_at=datetime.now(timezone.utc) - timedelta(days=3),
+        returned_at=datetime.now(timezone.utc) - timedelta(days=2),
     )
     audit_db.add(rental)
     audit_db.commit()
