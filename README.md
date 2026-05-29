@@ -1,5 +1,9 @@
 # TBD
 
+# LIVE DEMO
+
+`http://srv41.mikr.us:40155`
+
 # Hub Rental System
 
 Hub Rental System is an internal hardware management platform that allows employees to browse and rent physical equipment, while providing administrators with tools to track inventory and user accounts. It also includes an AI layer provided as a standalone MCP server for auditing inventory.
