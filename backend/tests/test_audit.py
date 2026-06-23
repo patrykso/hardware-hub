@@ -137,3 +137,31 @@ def test_audit_returns_empty_for_clean_inventory(audit_db):
     
     # We expect no findings for this clean item
     assert len(findings) == 0
+
+
+def test_get_rental_history_multiple_ids(audit_db):
+    # 1. Create a user
+    user = User(id=1, username="test_user", is_admin=False)
+    audit_db.add(user)
+    
+    # 2. Create two equipment items
+    eq1 = Equipment(id=1, name="Phone 1", brand="Apple", status="Available")
+    eq2 = Equipment(id=2, name="Phone 2", brand="Google", status="Available")
+    audit_db.add(eq1)
+    audit_db.add(eq2)
+    
+    # 3. Create rentals
+    rental1 = Rental(id=1, equipment_id=1, user_id=1, rented_at=datetime.now(timezone.utc) - timedelta(days=5))
+    rental2 = Rental(id=2, equipment_id=2, user_id=1, rented_at=datetime.now(timezone.utc) - timedelta(days=3))
+    audit_db.add(rental1)
+    audit_db.add(rental2)
+    audit_db.commit()
+    
+    # Call get_rental_history tool function directly with string
+    history = mcp_server_module.get_rental_history("1, 2")
+    
+    assert len(history) == 2
+    eq_ids = [item["equipment_id"] for item in history]
+    assert 1 in eq_ids
+    assert 2 in eq_ids
+    assert history[0]["username"] == "test_user"

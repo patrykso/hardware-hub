@@ -207,7 +207,7 @@ export const useEquipmentStore = defineStore('equipment', () => {
     if (!authStore.currentUser) {
       return [];
     }
-    return rentals.value.filter((rental) => !rental.returnedAt);
+    return rentals.value.filter((rental) => rental.userId === authStore.currentUser.id && !rental.returnedAt);
   });
 
   const equipmentForCurrentUser = computed(() => {
@@ -219,7 +219,7 @@ export const useEquipmentStore = defineStore('equipment', () => {
       return equipment.value;
     }
 
-    return equipment.value.filter((item) => item.status !== 'Repair');
+    return equipment.value.filter((item) => item.status !== 'Error');
   });
 
   const dashboardStats = computed(() => {

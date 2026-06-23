@@ -3,6 +3,7 @@ import { useHubState } from "./data/hubState";
 import LoginView from "./views/LoginView.vue";
 import HardwareListView from "./views/HardwareListView.vue";
 import MyRentalsView from "./views/MyRentalsView.vue";
+import AllRentalsView from "./views/AllRentalsView.vue";
 import AdminPanelView from "./views/AdminPanelView.vue";
 import EditEquipmentView from "./views/EditEquipmentView.vue";
 import UsersView from "./views/UsersView.vue";
@@ -17,6 +18,11 @@ const routes = [
     meta: { title: "Hardware List" },
   },
   { path: "/rentals", component: MyRentalsView, meta: { title: "My Rentals" } },
+  {
+    path: "/admin/rentals",
+    component: AllRentalsView,
+    meta: { title: "All Rentals", adminOnly: true },
+  },
   {
     path: "/admin",
     component: AdminPanelView,

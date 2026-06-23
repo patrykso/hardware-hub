@@ -85,22 +85,37 @@ def get_active_rentals() -> List[Dict[str, Any]]:
 
 
 @mcp.tool()
-def get_rental_history(equipment_id: int) -> List[Dict[str, Any]]:
-    """Retrieve the full rental history (completed and active) for a specific equipment item.
+def get_rental_history(equipment_ids: str) -> List[Dict[str, Any]]:
+    """Retrieve the full rental history (completed and active) for one or more equipment items.
     
     Args:
-        equipment_id (int): The ID of the equipment to fetch history for.
+        equipment_ids (str): A comma-separated list of equipment IDs (e.g. "1,2,3") or a single ID (e.g. "1").
         
     Returns:
-        List[Dict[str, Any]]: A list of history records, including the renter's username,
-        rented_at, and returned_at (None if still active) timestamps.
+        List[Dict[str, Any]]: A list of history records, including the equipment_id,
+        renter's username, rented_at, and returned_at (None if still active) timestamps.
     """
     session: Session = SessionLocal()
     try:
+        # Split by comma and strip spaces, parsing each as an integer
+        ids = []
+        for part in equipment_ids.split(','):
+            part = part.strip()
+            if not part:
+                continue
+            try:
+                ids.append(int(part))
+            except ValueError:
+                # Ignore non-integer elements
+                continue
+        
+        if not ids:
+            return []
+            
         rentals = (
             session.query(Rental)
             .join(User)
-            .filter(Rental.equipment_id == equipment_id)
+            .filter(Rental.equipment_id.in_(ids))
             .order_by(Rental.rented_at.desc())
             .all()
         )
@@ -108,6 +123,7 @@ def get_rental_history(equipment_id: int) -> List[Dict[str, Any]]:
         history = []
         for r in rentals:
             history.append({
+                "equipment_id": r.equipment_id,
                 "username": r.user.username,
                 "rented_at": r.rented_at.isoformat() if r.rented_at else None,
                 "returned_at": r.returned_at.isoformat() if r.returned_at else None

@@ -9,18 +9,52 @@
           placeholder="Search devices..."
         />
       </label>
-      <select v-model="statusFilter" class="input-group input-select">
-        <option value="all">All statuses</option>
-        <option value="Available">Available</option>
-        <option value="In use">In use</option>
-        <option value="Repair">Repair</option>
-      </select>
-      <select v-model="brandFilter" class="input-group input-select">
-        <option value="all">All brands</option>
-        <option v-for="brand in brands" :key="brand" :value="brand">
-          {{ brand }}
-        </option>
-      </select>
+
+      <!-- Brand Multichoice Dropdown -->
+      <div id="brand-dropdown-container" class="custom-dropdown">
+        <div
+          class="dropdown-trigger"
+          :class="{ open: brandDropdownOpen }"
+          @click="toggleBrandDropdown"
+        >
+          <span class="dropdown-trigger-text">{{ selectedBrandsLabel }}</span>
+          <span class="material-symbols-outlined">expand_more</span>
+        </div>
+        <div v-if="brandDropdownOpen" class="dropdown-menu">
+          <label v-for="brand in brands" :key="brand" class="dropdown-item">
+            <input
+              type="checkbox"
+              :value="brand"
+              v-model="selectedBrands"
+              class="checkbox-input"
+            />
+            <span class="checkbox-text-label">{{ brand }}</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Status Multichoice Dropdown -->
+      <div id="status-dropdown-container" class="custom-dropdown">
+        <div
+          class="dropdown-trigger"
+          :class="{ open: statusDropdownOpen }"
+          @click="toggleStatusDropdown"
+        >
+          <span class="dropdown-trigger-text">{{ selectedStatusesLabel }}</span>
+          <span class="material-symbols-outlined">expand_more</span>
+        </div>
+        <div v-if="statusDropdownOpen" class="dropdown-menu">
+          <label v-for="statusItem in availableStatuses" :key="statusItem" class="dropdown-item">
+            <input
+              type="checkbox"
+              :value="statusItem"
+              v-model="selectedStatuses"
+              class="checkbox-input"
+            />
+            <span class="checkbox-text-label">{{ statusItem }}</span>
+          </label>
+        </div>
+      </div>
     </div>
 
     <section class="surface-card">
@@ -75,6 +109,14 @@
                 </button>
               </td>
             </tr>
+            <tr v-if="filteredEquipment.length === 0">
+              <td colspan="5">
+                <div class="empty-state">
+                  <span class="material-symbols-outlined">devices_off</span>
+                  <p>No hardware matching your filters was found.</p>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -112,39 +154,113 @@
             Unavailable
           </button>
         </article>
+        <div v-if="filteredEquipment.length === 0" class="empty-state">
+          <span class="material-symbols-outlined">devices_off</span>
+          <p>No hardware matching your filters was found.</p>
+        </div>
       </div>
     </section>
   </AppShell>
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, onUnmounted } from "vue";
 import AppShell from "../components/AppShell.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 import { useHubState } from "../data/hubState";
 
 const hub = useHubState();
 const searchText = ref("");
-const statusFilter = ref("all");
-const brandFilter = ref("all");
+
+// Multichoice filter states
+const selectedStatuses = ref([]);
+const selectedBrands = ref([]);
+
+// Dropdown UI states
+const brandDropdownOpen = ref(false);
+const statusDropdownOpen = ref(false);
+
 const sortKey = ref("name");
 const sortAsc = ref(true);
 
-const brands = computed(() =>
-  [...new Set(hub.equipment.value.map((i) => i.brand))].sort(),
-);
+function toggleBrandDropdown() {
+  brandDropdownOpen.value = !brandDropdownOpen.value;
+  statusDropdownOpen.value = false;
+}
+
+function toggleStatusDropdown() {
+  statusDropdownOpen.value = !statusDropdownOpen.value;
+  brandDropdownOpen.value = false;
+}
+
+// Click outside handler to close dropdowns
+function handleClickOutside(event) {
+  const brandEl = document.getElementById("brand-dropdown-container");
+  const statusEl = document.getElementById("status-dropdown-container");
+  if (brandEl && !brandEl.contains(event.target)) {
+    brandDropdownOpen.value = false;
+  }
+  if (statusEl && !statusEl.contains(event.target)) {
+    statusDropdownOpen.value = false;
+  }
+}
+
+onMounted(() => {
+  window.addEventListener("click", handleClickOutside);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("click", handleClickOutside);
+});
+
+// Brands available based on visible equipment
+const brands = computed(() => {
+  const items = hub.equipmentForCurrentUser.value || [];
+  return [...new Set(items.map((i) => i.brand).filter(Boolean))].sort();
+});
+
+// Statuses visible to the user (non-admin can see all except Error)
+const availableStatuses = computed(() => {
+  if (hub.currentUser.value?.isAdmin) {
+    return ["Available", "In use", "Repair", "Error"];
+  }
+  return ["Available", "In use", "Repair"];
+});
+
+// Computed labels for triggers
+const selectedBrandsLabel = computed(() => {
+  if (selectedBrands.value.length === 0) return "All brands";
+  if (selectedBrands.value.length === brands.value.length) return "All brands";
+  return selectedBrands.value.join(", ");
+});
+
+const selectedStatusesLabel = computed(() => {
+  if (selectedStatuses.value.length === 0) return "All statuses";
+  if (selectedStatuses.value.length === availableStatuses.value.length) return "All statuses";
+  return selectedStatuses.value.join(", ");
+});
 
 const filteredEquipment = computed(() => {
-  return hub.equipment.value
+  const source = hub.equipmentForCurrentUser.value || [];
+  return source
     .filter((item) => {
       const matchesSearch = [item.name, item.brand, item.serialNumber]
         .join(" ")
         .toLowerCase()
         .includes(searchText.value.toLowerCase());
-      const matchesStatus =
-        statusFilter.value === "all" || item.status === statusFilter.value;
-      const matchesBrand =
-        brandFilter.value === "all" || item.brand === brandFilter.value;
+
+      // Status filtering
+      let matchesStatus = true;
+      if (selectedStatuses.value.length > 0) {
+        matchesStatus = selectedStatuses.value.includes(item.status);
+      }
+
+      // Brand filtering
+      let matchesBrand = true;
+      if (selectedBrands.value.length > 0) {
+        matchesBrand = selectedBrands.value.includes(item.brand);
+      }
+
       return matchesSearch && matchesStatus && matchesBrand;
     })
     .sort((a, b) => {
@@ -179,3 +295,97 @@ function rent(id) {
     );
 }
 </script>
+
+<style scoped>
+.custom-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 14px;
+  min-height: 48px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--panel-muted);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 180ms, box-shadow 180ms;
+}
+
+.dropdown-trigger:hover {
+  border-color: var(--line-strong);
+}
+
+.dropdown-trigger.open {
+  border-color: rgba(37, 99, 235, 0.4);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
+}
+
+.dropdown-trigger-text {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.95rem;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 6px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  z-index: 100;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 8px 0;
+  backdrop-filter: blur(8px);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 150ms ease;
+  font-size: 0.95rem;
+}
+
+.dropdown-item:hover {
+  background: var(--panel-muted);
+}
+
+.dropdown-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  accent-color: var(--blue);
+}
+
+.checkbox-text-label {
+  flex: 1;
+}
+
+.checkbox-input {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  accent-color: var(--blue);
+}
+</style>

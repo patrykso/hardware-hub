@@ -19,7 +19,11 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse
             detail="Incorrect username or password",
         )
 
-    token_data = {"sub": user.username, "is_admin": user.is_admin}
+    token_data = {
+        "sub": user.username,
+        "is_admin": user.is_admin,
+        "user_id": user.id,
+    }
     access_token = create_access_token(token_data)
 
     return TokenResponse(access_token=access_token, token_type="bearer")

@@ -112,3 +112,34 @@ def test_delete_equipment_success(admin_client):
     # Verify it is deleted
     get_resp = admin_client.get("/api/v1/equipment")
     assert not any(item["id"] == 1 for item in get_resp.json())
+
+
+def test_patch_equipment_status_available_when_in_use_fails(admin_client):
+    payload = {"status": "Available"}
+    response = admin_client.patch("/api/v1/equipment/2", json=payload)
+    assert response.status_code == 409
+    assert "Cannot change status on equipment that is In use. It must be returned first." in response.json()["detail"]
+
+
+def test_patch_equipment_status_to_in_use_fails(admin_client):
+    payload = {"status": "In use"}
+    response = admin_client.patch("/api/v1/equipment/1", json=payload)
+    assert response.status_code == 409
+    assert "Cannot manually set status to In use." in response.json()["detail"]
+
+
+def test_delete_equipment_with_active_rental_and_available_status_fails(client, admin_token, db_session):
+    from app.models.rental import Rental
+    from datetime import datetime, timezone
+    # 1. Create a rental directly in DB, leaving returned_at as None, but keep equipment status as Available
+    rental = Rental(equipment_id=1, user_id=2, rented_at=datetime.now(timezone.utc))
+    db_session.add(rental)
+    db_session.commit()
+
+    # 2. Attempt to delete equipment 1
+    response = client.delete(
+        "/api/v1/equipment/1",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert response.status_code == 409
+    assert "Cannot delete equipment that has an active rental" in response.json()["detail"]
