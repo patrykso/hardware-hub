@@ -15,7 +15,7 @@ function decodeToken(jwtToken) {
     );
     const decoded = JSON.parse(jsonPayload);
     return {
-      id: 1, // Set a default ID for front-end structure compatibility
+      id: decoded.user_id || 1, // Use decoded user_id or fallback to 1
       username: decoded.sub,
       isAdmin: decoded.is_admin,
       displayName: decoded.sub, // Use username as display name

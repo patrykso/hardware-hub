@@ -16,7 +16,7 @@
           <input
             v-model="form.username"
             type="text"
-            placeholder="name@booksy.com"
+            placeholder="name@example.com"
             required
           />
         </label>

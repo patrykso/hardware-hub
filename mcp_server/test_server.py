@@ -35,9 +35,12 @@ def run_tests():
     print("\n--- Testing get_rental_history() ---")
     # Use equipment ID from inventory or default to 1
     target_eq_id = inventory[0]["id"] if inventory else 1
-    print(f"Fetching rental history for equipment_id={target_eq_id}...")
-    history = get_rental_history(target_eq_id)
-    print(f"Total rental records for item {target_eq_id}: {len(history)}")
+    query_str = f"{target_eq_id}"
+    if len(inventory) > 1:
+        query_str = f"{inventory[0]['id']},{inventory[1]['id']}"
+    print(f"Fetching rental history for equipment_ids='{query_str}'...")
+    history = get_rental_history(query_str)
+    print(f"Total rental records: {len(history)}")
     if history:
         print("Sample history record:")
         pprint(history[0])

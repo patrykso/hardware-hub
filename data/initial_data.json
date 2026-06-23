@@ -48,7 +48,7 @@
     "brand": "Sony",
     "purchaseDate": "2022-01-12",
     "status": "In Use",
-    "assignedTo": "j.doe@booksy.com"
+    "assignedTo": "j.doe@example.com"
   },
   {
     "id": 4,

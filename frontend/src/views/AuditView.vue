@@ -5,7 +5,7 @@
         <div class="audit-header">
           <div>
             <p class="eyebrow">Hardware Manager</p>
-            <h2>AI Assistant Audit</h2>
+            <h2>AI Assistant Audit (TBD)</h2>
             <p>Run an inventory health check and review the generated findings here.</p>
           </div>
 

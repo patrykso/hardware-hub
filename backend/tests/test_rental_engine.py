@@ -125,7 +125,7 @@ def test_admin_can_return_other_users_rental(client, admin_token, user_token):
     assert eq1["status"] == "Available"
 
 
-def test_user_and_admin_only_see_own_rentals(client, admin_token, user_token):
+def test_user_sees_own_rentals_and_admin_sees_all_rentals(client, admin_token, user_token):
     # 1. Admin rents Equipment 1, then returns it
     admin_rent = client.post(
         "/api/v1/rentals",
@@ -152,15 +152,17 @@ def test_user_and_admin_only_see_own_rentals(client, admin_token, user_token):
         headers={"Authorization": f"Bearer {user_token}"},
     )
 
-    # 3. GET /rentals as Admin should only show Admin's rental
+    # 3. GET /rentals as Admin should show all rentals in the system
     admin_list = client.get(
         "/api/v1/rentals",
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert admin_list.status_code == 200
     admin_rentals = admin_list.json()
-    assert len(admin_rentals) == 1
-    assert admin_rentals[0]["id"] == admin_rental_id
+    assert len(admin_rentals) >= 2
+    rental_ids = [r["id"] for r in admin_rentals]
+    assert admin_rental_id in rental_ids
+    assert user_rental_id in rental_ids
 
     # 4. GET /rentals as User should only show User's rental
     user_list = client.get(

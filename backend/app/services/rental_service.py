@@ -18,12 +18,23 @@ def update_equipment(db: Session, equipment_id: int, payload: EquipmentUpdate) -
             detail="Equipment not found",
         )
 
-    # 2. Enforce Rule 6: Setting status to Repair on InUse equipment is not allowed
-    if payload.status == EquipmentStatus.REPAIR and equipment.status == EquipmentStatus.IN_USE:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Cannot set status to Repair on equipment that is In use",
-        )
+    # 2. Enforce guards on status updates to prevent state mismatch
+    if payload.status is not None:
+        if equipment.status == EquipmentStatus.IN_USE and payload.status != EquipmentStatus.IN_USE:
+            if payload.status == EquipmentStatus.REPAIR:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Cannot set status to Repair on equipment that is In use",
+                )
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cannot change status on equipment that is In use. It must be returned first.",
+            )
+        if payload.status == EquipmentStatus.IN_USE and equipment.status != EquipmentStatus.IN_USE:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cannot manually set status to In use.",
+            )
 
     # 3. Apply updates
     update_data = payload.model_dump(exclude_unset=True)
@@ -49,6 +60,18 @@ def delete_equipment(db: Session, equipment_id: int) -> None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Cannot delete equipment that is currently In use",
+        )
+
+    open_rental = db.scalar(
+        select(Rental).where(
+            Rental.equipment_id == equipment_id,
+            Rental.returned_at == None,
+        )
+    )
+    if open_rental:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot delete equipment that has an active rental",
         )
 
     # 3. Delete
@@ -136,6 +159,8 @@ def return_equipment(db: Session, rental_id: int, user: User) -> Rental:
 
 
 def list_rentals(db: Session, user: User) -> list[Rental]:
-    # Always filter by current user's ID so that both admins and regular users only see their own rentals.
-    query = select(Rental).where(Rental.user_id == user.id).order_by(Rental.rented_at.desc())
+    if user.is_admin:
+        query = select(Rental).order_by(Rental.rented_at.desc())
+    else:
+        query = select(Rental).where(Rental.user_id == user.id).order_by(Rental.rented_at.desc())
     return list(db.execute(query).scalars().all())
